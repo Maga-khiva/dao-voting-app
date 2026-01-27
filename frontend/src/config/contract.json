@@ -1,0 +1,19 @@
+{
+  "address": "0x0edb054a3F8D594Ceb46E492E82310E4AD67DB79",
+  "tokenAddress": "0x16233789c90fC085080e7df62C275b2549104CE3",
+  "approvers": [
+    "0x7CBf2cAB68F059b31dDd1C3e14ACCE922134Ab05",
+    "0x7CBf2cAB68F059b31dDd1C3e14ACCE922134Ab05"
+  ],
+  "requiredApprovals": 2,
+  "network": "sepolia",
+  "chainId": 11155111,
+  "deployedAt": "2026-01-27T15:27:02.769Z",
+  "features": {
+    "tokenVoting": true,
+    "multiSigExecution": true,
+    "proposalFiltering": true,
+    "voterAnalytics": true,
+    "amendments": true
+  }
+}
