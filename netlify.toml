@@ -1,0 +1,17 @@
+[build]
+  command = "cd frontend && npm install && npm run build"
+  publish = "frontend/dist"
+
+[dev]
+  command = "npm run dev"
+  port = 3000
+  targetPort = 3000
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Environment variables should be set in Netlify dashboard
+# VITE_SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/YOUR_KEY
+# VITE_LOCAL_RPC_URL=http://localhost:8545 (optional, won't be used in prod)

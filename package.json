@@ -1,0 +1,32 @@
+{
+  "name": "web3-dapp",
+  "version": "1.0.0",
+  "description": "Web3 dApp with Hardhat and React",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "dev": "concurrently \"hardhat node\" \"cd frontend && npm run dev\"",
+    "deploy": "hardhat run scripts/deploy.ts",
+    "frontend": "cd frontend && npm run dev"
+  },
+  "keywords": [
+    "web3",
+    "hardhat",
+    "solidity",
+    "react"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "concurrently": "^8.0.0",
+    "hardhat": "^2.19.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0",
+    "dotenv": "^16.6.1",
+    "ethers": "^6.0.0"
+  }
+}
