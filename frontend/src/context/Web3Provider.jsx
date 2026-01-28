@@ -24,28 +24,21 @@ export const Web3Provider = ({ children, contractAddress }) => {
   ];
 
   // Initialize default provider on mount (for read-only calls)
-  useEffect(() => {
-    const initializeDefaultProvider = async () => {
-      try {
-        // Determine RPC URL based on environment
-        const rpcUrl = 
-          import.meta.env.VITE_SEPOLIA_RPC_URL || 
-          import.meta.env.VITE_LOCAL_RPC_URL || 
-          "http://localhost:8545";
-        
-        const defaultProvider = new ethers.JsonRpcProvider(rpcUrl);
-        
-        // Verify we can reach the provider
-        await defaultProvider.getNetwork();
-        setProvider(defaultProvider);
-        console.log("Connected to provider:", rpcUrl);
-      } catch (err) {
-        console.log("Could not connect to default RPC, will use wallet provider when available");
-      }
-    };
-
-    initializeDefaultProvider();
-  }, []);
+    useEffect(() => {
+      const initializeDefaultProvider = async () => {
+        try {
+          // Always use Sepolia RPC for read-only calls
+          const sepoliaRpc = import.meta.env.VITE_SEPOLIA_RPC_URL || "https://sepolia.infura.io/v3/bd97f8b57cb442d687ab6db50aefe2df";
+          const defaultProvider = new ethers.JsonRpcProvider(sepoliaRpc);
+          await defaultProvider.getNetwork();
+          setProvider(defaultProvider);
+          console.log("Connected to Sepolia provider:", sepoliaRpc);
+        } catch (err) {
+          console.log("Could not connect to Sepolia RPC, will use wallet provider when available");
+        }
+      };
+      initializeDefaultProvider();
+    }, []);
 
   // Check for auto-connection on mount using eth_accounts
   useEffect(() => {

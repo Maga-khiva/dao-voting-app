@@ -17,7 +17,7 @@ export const Tier2Features = ({ onNavigate }) => {
           >
             ← Back to Home
           </button>
-          <h1 className="text-3xl font-bold text-gray-800">Advanced Features</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-700 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Advanced Features</h1>
           <p className="text-gray-600 mt-2">Manage your voting power and governance permissions</p>
         </div>
 
@@ -88,7 +88,7 @@ export const Tier2Features = ({ onNavigate }) => {
           {activeTab === "info" && (
             <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
               <section>
-                <h3 className="text-xl font-bold text-gray-800 mb-3">Snapshot-Based Voting</h3>
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-3">Snapshot-Based Voting</h3>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <p className="text-gray-700 mb-2">
                     Your voting power is locked when a proposal is created. This prevents manipulation
@@ -103,7 +103,7 @@ export const Tier2Features = ({ onNavigate }) => {
               </section>
 
               <section>
-                <h3 className="text-xl font-bold text-gray-800 mb-3">Vote Delegation</h3>
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-3">Vote Delegation</h3>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <p className="text-gray-700 mb-2">
                     Delegate your voting power to someone you trust. They'll receive your voting weight.
@@ -118,7 +118,7 @@ export const Tier2Features = ({ onNavigate }) => {
               </section>
 
               <section>
-                <h3 className="text-xl font-bold text-gray-800 mb-3">Role-Based Access Control</h3>
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-3">Role-Based Access Control</h3>
                 <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                   <p className="text-gray-700 mb-3">Three roles control governance permissions:</p>
                   <div className="space-y-3">
@@ -139,7 +139,7 @@ export const Tier2Features = ({ onNavigate }) => {
               </section>
 
               <section>
-                <h3 className="text-xl font-bold text-gray-800 mb-3">Proposal Amendments</h3>
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-3">Proposal Amendments</h3>
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <p className="text-gray-700 mb-2">
                     Members can propose changes to active proposals. Moderators review and approve/reject.

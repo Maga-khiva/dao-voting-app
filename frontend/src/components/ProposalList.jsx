@@ -137,7 +137,7 @@ export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, 
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-2 sm:p-6">
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl">
           ⚠️ {error}
@@ -169,7 +169,7 @@ export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, 
           filteredProposals.map((proposal) => (
             <div
               key={proposal.id}
-              className="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 hover:shadow-md transition-all"
+              className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all"
             >
               <div className="flex justify-between items-start mb-4">
                 <h3 className="text-xl font-bold text-gray-900">
@@ -210,10 +210,10 @@ export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, 
                     <p className="text-sm font-bold text-gray-400">No votes yet</p>
                   )}
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                   {proposal.yesVotes + proposal.noVotes > 0 ? (
                     <div
-                      className="bg-gradient-to-r from-blue-400 to-blue-600 h-full rounded-full transition-all duration-300 hover:shadow-md"
+                      className="bg-gradient-to-r from-blue-500 to-cyan-400 h-full rounded-full transition-all duration-300"
                       style={{
                         width: `${
                           (proposal.yesVotes /
@@ -245,7 +245,7 @@ export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, 
                 </div>
                 <button
                   onClick={() => onSelectProposal(proposal.id)}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-full font-bold hover:bg-blue-700 transition-all active:scale-95"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-full font-bold hover:bg-blue-700 hover:scale-105 transition-all active:scale-95"
                 >
                   View Details
                 </button>

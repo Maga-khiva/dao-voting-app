@@ -32,56 +32,50 @@ export const Home = ({ onNavigate }) => {
   };
 
   return (
-    <div className="gradient-bg min-h-screen py-12 px-4">
+    <div className="min-h-screen py-6 px-2 sm:py-10 sm:px-4 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="card mb-8 fade-in">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                🗳️ DAO Voting DApp
-              </h1>
-              <p className="text-gray-600 text-lg">
-                Decentralized governance for the community
-              </p>
+        <div className="mb-8 fade-in border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm px-4 py-3 sm:px-8 sm:py-4 bg-white dark:bg-gray-800">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="text-lg sm:text-2xl">🗳️</span>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap dark:text-white">DAO Voting DApp</h1>
             </div>
-
-            {isInitializing ? (
-              <div className="text-right">
-                <p className="text-sm text-gray-600 mb-2">🔍 Checking wallet...</p>
+            <div className="flex flex-col items-end sm:items-center gap-1 min-w-0">
+              {isInitializing ? (
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse"></div>
-                  <span className="text-gray-600">Initializing</span>
+                  <div className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-gray-600 dark:text-gray-300">Initializing...</span>
                 </div>
-              </div>
-            ) : !account ? (
-              <button
-                onClick={connectWallet}
-                disabled={isConnecting}
-                className="btn-success disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isConnecting ? "⏳ Connecting..." : "🔗 Connect Wallet"}
-              </button>
-            ) : (
-              <div className="text-right flex items-center gap-3">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <p className="text-xs font-semibold text-green-600 uppercase">Connected</p>
-                  </div>
-                  <p className="font-mono text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg mb-2">
-                    {account.substring(0, 6)}...{account.substring(-4)}
-                  </p>
+              ) : !account ? (
+                <button
+                  onClick={connectWallet}
+                  disabled={isConnecting}
+                  className="btn-success disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 transition-all px-4 py-2 text-sm"
+                >
+                  {isConnecting ? "⏳ Connecting..." : "🔗 Connect Wallet"}
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                  </span>
+                  <span className="text-xs font-semibold text-green-700 dark:text-green-400 mr-2">Connected</span>
+                  <span className="font-mono text-xs font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-gray-700 px-2 py-0.5 rounded-lg truncate max-w-[110px] sm:max-w-[160px]" title={account}>
+                    {account.slice(0, 6)}...{account.slice(-4)}
+                  </span>
                   <button
                     onClick={handleDisconnectClick}
-                    className="text-xs font-semibold text-red-600 hover:text-red-700 hover:underline transition-all"
+                    className="text-xs font-semibold text-red-600 hover:text-red-700 hover:underline transition-all ml-2"
                   >
                     🔌 Disconnect
                   </button>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
+          <p className="text-gray-500 dark:text-gray-300 text-sm mt-2 ml-1 hidden sm:block">Decentralized governance for the community</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -101,7 +95,7 @@ export const Home = ({ onNavigate }) => {
             {/* Create Proposal Button */}
             <button
               onClick={() => onNavigate("create")}
-              className="w-full btn-success text-lg py-4 fade-in"
+              className="w-full btn-success text-lg py-4 fade-in hover:scale-105 transition-all"
             >
               ➕ Create Proposal
             </button>
@@ -109,7 +103,7 @@ export const Home = ({ onNavigate }) => {
             {/* Analytics Link */}
             <button
               onClick={() => onNavigate("analytics")}
-              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 fade-in"
+              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-3 px-4 rounded-2xl transition-all fade-in hover:scale-105"
             >
               📊 View Analytics
             </button>
@@ -117,14 +111,14 @@ export const Home = ({ onNavigate }) => {
             {/* Tier 2 Features Link */}
             <button
               onClick={() => onNavigate("tier2")}
-              className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 fade-in border-2 border-pink-400"
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold py-3 px-4 rounded-2xl transition-all fade-in border border-blue-200 hover:scale-105"
             >
               ⭐ Advanced Features (Tier 2)
             </button>
 
             {/* Quick Stats Card */}
-            <div className="card fade-in">
-              <h3 className="text-xl font-bold text-gray-800 mb-6">
+            <div className="rounded-2xl border border-gray-100 shadow-sm bg-white p-6 fade-in">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-6">
                 📊 Quick Stats
               </h3>
               <div className="space-y-4">
@@ -158,7 +152,7 @@ export const Home = ({ onNavigate }) => {
             </div>
 
             {/* Info Card */}
-            <div className="card bg-blue-50 border-2 border-blue-200 fade-in">
+            <div className="rounded-2xl border border-gray-100 shadow-sm bg-blue-50 p-6 fade-in">
               <h4 className="font-bold text-blue-900 mb-3">ℹ️ How It Works</h4>
               <ul className="text-sm text-blue-800 space-y-2">
                 <li>✓ Create proposals (owner)</li>

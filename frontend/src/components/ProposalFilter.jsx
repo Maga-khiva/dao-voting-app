@@ -17,13 +17,13 @@ export function ProposalFilter({ onFilterChange }) {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6 shadow-sm">
+    <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-bold text-gray-800">🔍 Filter Proposals</h3>
         {(search || category !== "All" || status !== "All") && (
           <button
             onClick={handleClear}
-            className="text-sm text-blue-600 hover:text-blue-800 font-semibold"
+            className="text-sm text-blue-600 hover:text-blue-800 font-semibold hover:scale-105 transition-all"
           >
             ✕ Clear Filters
           </button>
@@ -44,7 +44,7 @@ export function ProposalFilter({ onFilterChange }) {
               setSearch(e.target.value);
               onFilterChange({ search: e.target.value, category, status });
             }}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </div>
 
@@ -59,7 +59,7 @@ export function ProposalFilter({ onFilterChange }) {
               setCategory(e.target.value);
               handleChange();
             }}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
           >
             <option value="All">All Categories</option>
             <option value="Treasury">💰 Treasury</option>
@@ -80,7 +80,7 @@ export function ProposalFilter({ onFilterChange }) {
               setStatus(e.target.value);
               handleChange();
             }}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
           >
             <option value="All">All Statuses</option>
             <option value="Active">🟢 Active</option>

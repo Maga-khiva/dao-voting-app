@@ -39,7 +39,7 @@ export const VotePage = ({ onNavigate, proposalId, onVoteSuccess }) => {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-600 text-lg">
+              <p className="text-gray-600 text-base sm:text-lg">
                 Please select a proposal from the home page
               </p>
               <button

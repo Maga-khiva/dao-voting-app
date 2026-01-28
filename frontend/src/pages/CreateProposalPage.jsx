@@ -22,7 +22,7 @@ export const CreateProposalPage = ({ onNavigate, onProposalCreated }) => {
         </button>
 
         <div className="bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-2">
             Create New Proposal
           </h1>
           <p className="text-gray-600 mb-8">
