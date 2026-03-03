@@ -15,7 +15,7 @@ export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, 
 
   const loadProposals = useCallback(async () => {
     if (!provider) {
-      return; // Silently wait for provider
+      return;
     }
 
     setIsLoading(true);
@@ -28,10 +28,8 @@ export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, 
         provider
       );
 
-      // Get proposals - returns separate arrays
       const result = await readContract.getProposals();
 
-      // Destructure the arrays returned by the smart contract
       const [
         titles,
         descriptions,
@@ -43,7 +41,6 @@ export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, 
         categories,
       ] = result;
 
-      // Map arrays into proposal objects
       const proposalList = titles.map((title, index) => ({
         id: index.toString(),
         title: title || "Untitled",
@@ -66,12 +63,10 @@ export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, 
     }
   }, [provider]);
 
-  // Load proposals when the provider or refreshTrigger changes
   useEffect(() => {
     loadProposals();
   }, [loadProposals, refreshTrigger]);
 
-  // Event listener for real-time updates
   useEffect(() => {
     if (!provider) return;
 
@@ -82,7 +77,6 @@ export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, 
     );
 
     const onProposalCreated = () => {
-      console.log("📢 New proposal detected, refreshing list...");
       loadProposals();
     };
 
@@ -91,37 +85,24 @@ export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, 
     return () => {
       try {
         eventContract.removeAllListeners("ProposalCreated");
-      } catch (err) {
-        // Silently ignore cleanup errors
-      }
+      } catch (err) {}
     };
   }, [provider, loadProposals]);
 
-  const formatDate = (timestamp) => {
-    return new Date(timestamp * 1000).toLocaleDateString();
-  };
-
   const getProposalStatus = (proposal) => {
-    // Use the status from the contract first
     if (proposal.status && proposal.status !== "Active") {
       return proposal.status;
     }
-    // Fallback to checking if voting is active
     return isVotingActive(proposal) ? "Active" : "Closed";
   };
 
-  const getProposalCategory = (proposal) => {
-    return proposal.category || "Governance";
-  };
-
-  // Filter proposals based on search, category, and status
   const filteredProposals = proposals.filter((proposal) => {
     const searchTerm = (filters.search || "").toLowerCase();
     const titleMatches = proposal.title.toLowerCase().includes(searchTerm);
     const descMatches = proposal.description.toLowerCase().includes(searchTerm);
 
     const categoryMatches =
-      filters.category === "All" || getProposalCategory(proposal) === filters.category;
+      filters.category === "All" || proposal.category === filters.category;
 
     const status = getProposalStatus(proposal);
     const statusMatches =
@@ -132,26 +113,30 @@ export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, 
 
   if (isLoading && proposals.length === 0) {
     return (
-      <div className="text-center py-20 text-gray-500">Loading proposals...</div>
+      <div className="flex flex-col items-center justify-center py-20 space-y-4">
+        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-gray-500 font-medium">Fetching proposals from blockchain...</p>
+      </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-2 sm:p-6">
+    <div className="max-w-4xl mx-auto p-2 sm:p-0">
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl">
-          ⚠️ {error}
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl flex items-center gap-3">
+          <span>⚠️</span>
+          <p>{error}</p>
         </div>
       )}
 
       <div className="grid gap-6">
         {filteredProposals.length === 0 ? (
-          <div className="text-center py-20 bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl border-2 border-dashed border-gray-200">
+          <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-3xl border-2 border-dashed border-gray-200 dark:border-gray-700">
             <div className="text-6xl mb-4">🗳️</div>
-            <p className="text-2xl font-bold text-gray-700 mb-2">
+            <p className="text-2xl font-bold text-gray-700 dark:text-white mb-2">
               {proposals.length === 0 ? "No Proposals Yet" : "No Matching Proposals"}
             </p>
-            <p className="text-gray-500 mb-8">
+            <p className="text-gray-500 dark:text-gray-400 mb-8">
               {proposals.length === 0
                 ? "Be the first to create a proposal and start the conversation"
                 : "Try adjusting your filters or search terms"}
@@ -169,13 +154,18 @@ export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, 
           filteredProposals.map((proposal) => (
             <div
               key={proposal.id}
-              className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all"
+              className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all group"
             >
               <div className="flex justify-between items-start mb-4">
-                <h3 className="text-xl font-bold text-gray-900">
-                  {proposal.title}
-                </h3>
-                <div className="flex gap-2">
+                <div className="min-w-0">
+                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-1 block">
+                    {proposal.category}
+                  </span>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white truncate">
+                    {proposal.title}
+                  </h3>
+                </div>
+                <div className="flex flex-col items-end gap-2">
                   <CountdownTimer deadline={proposal.deadline} />
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
@@ -191,16 +181,15 @@ export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, 
                 </div>
               </div>
 
-              <p className="text-gray-600 mb-6 line-clamp-2">
+              <p className="text-gray-600 dark:text-gray-400 mb-6 line-clamp-2">
                 {proposal.description}
               </p>
 
-              {/* Vote Progress Bar */}
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm font-semibold text-gray-700">Voting Progress</p>
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Voting Progress</p>
                   {proposal.yesVotes + proposal.noVotes > 0 ? (
-                    <p className="text-sm font-bold text-blue-600">
+                    <p className="text-sm font-bold text-blue-600 dark:text-blue-400">
                       {Math.round(
                         (proposal.yesVotes / (proposal.yesVotes + proposal.noVotes)) * 100
                       )}
@@ -210,10 +199,10 @@ export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, 
                     <p className="text-sm font-bold text-gray-400">No votes yet</p>
                   )}
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
                   {proposal.yesVotes + proposal.noVotes > 0 ? (
                     <div
-                      className="bg-gradient-to-r from-blue-500 to-cyan-400 h-full rounded-full transition-all duration-300"
+                      className="bg-gradient-to-r from-blue-500 to-cyan-400 h-full rounded-full transition-all duration-500"
                       style={{
                         width: `${
                           (proposal.yesVotes /
@@ -223,29 +212,29 @@ export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, 
                       }}
                     />
                   ) : (
-                    <div className="bg-gradient-to-r from-gray-200 to-gray-300 h-full w-full rounded-full" />
+                    <div className="bg-gray-300 dark:bg-gray-600 h-full w-full rounded-full" />
                   )}
                 </div>
               </div>
 
-              <div className="flex items-center justify-between mt-auto pt-6 border-t border-gray-50">
+              <div className="flex items-center justify-between mt-auto pt-6 border-t border-gray-50 dark:border-gray-700">
                 <div className="flex gap-6">
                   <div className="text-sm">
-                    <span className="font-bold text-blue-600">
+                    <span className="font-bold text-blue-600 dark:text-blue-400">
                       👍 {proposal.yesVotes}
                     </span>{" "}
-                    <span className="text-gray-600">Yes</span>
+                    <span className="text-gray-600 dark:text-gray-400">Yes</span>
                   </div>
                   <div className="text-sm">
-                    <span className="font-bold text-gray-500">
+                    <span className="font-bold text-gray-500 dark:text-gray-400">
                       👎 {proposal.noVotes}
                     </span>{" "}
-                    <span className="text-gray-600">No</span>
+                    <span className="text-gray-600 dark:text-gray-400">No</span>
                   </div>
                 </div>
                 <button
                   onClick={() => onSelectProposal(proposal.id)}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-full font-bold hover:bg-blue-700 hover:scale-105 transition-all active:scale-95"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-full font-bold hover:bg-blue-700 hover:scale-105 transition-all active:scale-95 shadow-sm"
                 >
                   View Details
                 </button>

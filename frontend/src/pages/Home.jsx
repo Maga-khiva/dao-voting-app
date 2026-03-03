@@ -3,9 +3,10 @@ import { ProposalList } from "../components/ProposalList";
 import { ProposalFilter } from "../components/ProposalFilter";
 import { DisconnectModal } from "../components/DisconnectModal";
 import { useWeb3 } from "../hooks/useWeb3";
+import contractConfig from "../config/contract.json";
 
 export const Home = ({ onNavigate }) => {
-  const { account, connectWallet, disconnectWallet, isInitializing, isConnecting } = useWeb3();
+  const { account, connectWallet, disconnectWallet, isInitializing, isConnecting, chainId } = useWeb3();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [showDisconnectModal, setShowDisconnectModal] = useState(false);
   const [filters, setFilters] = useState({
@@ -18,7 +19,7 @@ export const Home = ({ onNavigate }) => {
     onNavigate("vote", { proposalId });
   };
 
-  const handleProposalCreated = () => {
+  const handleRefresh = () => {
     setRefreshTrigger((prev) => prev + 1);
   };
 
@@ -31,6 +32,14 @@ export const Home = ({ onNavigate }) => {
     connectWallet();
   };
 
+  // Determine network name
+  const getNetworkName = () => {
+    if (!chainId) return contractConfig.network || "Unknown";
+    if (chainId === 11155111) return "Sepolia";
+    if (chainId === 31337) return "Localhost";
+    return `Chain ID: ${chainId}`;
+  };
+
   return (
     <div className="min-h-screen py-6 px-2 sm:py-10 sm:px-4 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto">
@@ -39,7 +48,7 @@ export const Home = ({ onNavigate }) => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">
               <span className="text-lg sm:text-2xl">🗳️</span>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap dark:text-white">DAO Voting DApp</h1>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap dark:text-white">MAGA DAO</h1>
             </div>
             <div className="flex flex-col items-end sm:items-center gap-1 min-w-0">
               {isInitializing ? (
@@ -81,6 +90,15 @@ export const Home = ({ onNavigate }) => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white">Proposals</h2>
+              <button 
+                onClick={handleRefresh}
+                className="text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
+              >
+                🔄 Refresh List
+              </button>
+            </div>
             <ProposalFilter onFilterChange={setFilters} />
             <ProposalList
               onSelectProposal={handleSelectProposal}
@@ -117,14 +135,14 @@ export const Home = ({ onNavigate }) => {
             </button>
 
             {/* Quick Stats Card */}
-            <div className="rounded-2xl border border-gray-100 shadow-sm bg-white p-6 fade-in">
-              <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-6">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800 p-6 fade-in">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white mb-6">
                 📊 Quick Stats
               </h3>
               <div className="space-y-4">
-                <div className="border-b pb-4">
-                  <p className="text-sm text-gray-600 mb-1">Wallet Status</p>
-                  <p className="font-semibold text-lg">
+                <div className="border-b dark:border-gray-700 pb-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Wallet Status</p>
+                  <p className="font-semibold text-lg dark:text-white">
                     {account ? (
                       <span className="text-green-600">✓ Connected</span>
                     ) : (
@@ -132,9 +150,9 @@ export const Home = ({ onNavigate }) => {
                     )}
                   </p>
                 </div>
-                <div className="border-b pb-4">
-                  <p className="text-sm text-gray-600 mb-1">Voting Rights</p>
-                  <p className="font-semibold text-lg">
+                <div className="border-b dark:border-gray-700 pb-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Voting Rights</p>
+                  <p className="font-semibold text-lg dark:text-white">
                     {account ? (
                       <span className="text-green-600">✓ Enabled</span>
                     ) : (
@@ -143,18 +161,18 @@ export const Home = ({ onNavigate }) => {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Network</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Network</p>
                   <p className="font-semibold text-lg text-blue-600">
-                    🔗 Localhost
+                    🔗 {getNetworkName()}
                   </p>
                 </div>
               </div>
             </div>
 
             {/* Info Card */}
-            <div className="rounded-2xl border border-gray-100 shadow-sm bg-blue-50 p-6 fade-in">
-              <h4 className="font-bold text-blue-900 mb-3">ℹ️ How It Works</h4>
-              <ul className="text-sm text-blue-800 space-y-2">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm bg-blue-50 dark:bg-blue-900/20 p-6 fade-in">
+              <h4 className="font-bold text-blue-900 dark:text-blue-300 mb-3">ℹ️ How It Works</h4>
+              <ul className="text-sm text-blue-800 dark:text-blue-400 space-y-2">
                 <li>✓ Create proposals (owner)</li>
                 <li>✓ Vote yes or no</li>
                 <li>✓ 7-day voting period</li>
