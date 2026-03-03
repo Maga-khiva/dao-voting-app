@@ -1,6 +1,4 @@
 import { ethers } from "hardhat";
-import * as fs from "fs";
-import * as path from "path";
 
 async function main() {
   console.log("🚀 Deploying Tier 1 DAO contracts...\n");
@@ -15,13 +13,14 @@ async function main() {
   console.log("✅ GovernanceToken deployed to:", tokenAddress);
 
   // Get signers for multi-sig setup
-  const signers = await ethers.getSigners();
+  const signers = await (ethers as any).getSigners();
   const owner = signers[0];
   
   console.log("\n2️⃣ Setting up Multi-Sig approvers...");
   console.log("   Owner:", owner.address);
   
   // For testnet with single signer: use owner as both approver and owner
+  // For mainnet/multi-sig: use multiple signers
   const approver1 = signers[1] || owner;
   const approver2 = signers[2] || owner;
   
@@ -52,7 +51,10 @@ async function main() {
   console.log("✅ Multi-Sig Approvers:", approvers.length, "Required:", required);
 
   // Save contract addresses to file for frontend use
-  const network = await ethers.provider.getNetwork();
+  const fs = require("fs");
+  const path = require("path");
+
+  const network = await (ethers as any).provider.getNetwork();
   const contractInfo = {
     address: votingAddress,
     tokenAddress: tokenAddress,
@@ -71,10 +73,7 @@ async function main() {
   };
 
   const filePath = path.join(__dirname, "../frontend/src/config/contract.json");
-  const dirPath = path.dirname(filePath);
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
-  }
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, JSON.stringify(contractInfo, null, 2));
 
   console.log("\n📝 Contract info saved to:", filePath);
