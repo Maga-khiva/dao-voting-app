@@ -8,7 +8,8 @@
     "test": "hardhat test",
     "dev": "concurrently \"hardhat node\" \"cd frontend && npm run dev\"",
     "deploy": "hardhat run scripts/deploy.ts",
-    "frontend": "cd frontend && npm run dev"
+    "frontend": "cd frontend && npm run dev",
+    "postinstall": "cd frontend && npm install"
   },
   "keywords": [
     "web3",
