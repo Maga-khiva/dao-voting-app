@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ethers } from "ethers";
 import { useWeb3 } from "../hooks/useWeb3";
 
@@ -11,26 +11,25 @@ export const VoteDelegation = ({ proposalId }) => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  // Load current delegation and voting power
-  useEffect(() => {
+  const loadDelegationData = useCallback(async () => {
     if (!contract || !account) return;
+    try {
+      const delegateAddr = await contract.getDelegate(account);
+      setCurrentDelegate(delegateAddr === ethers.ZeroAddress ? null : delegateAddr);
 
-    const loadDelegationData = async () => {
-      try {
-        const delegateAddr = await contract.getDelegate(account);
-        setCurrentDelegate(delegateAddr === ethers.ZeroAddress ? null : delegateAddr);
-
-        const power = await contract.getEffectiveVotingPower(account);
-        setEffectivePower(ethers.formatEther(power));
-      } catch (err) {
-        console.error("Error loading delegation data:", err);
-      }
-    };
-
-    loadDelegationData();
-    const interval = setInterval(loadDelegationData, 5000); // Refresh every 5 seconds
-    return () => clearInterval(interval);
+      const power = await contract.getEffectiveVotingPower(account);
+      setEffectivePower(ethers.formatEther(power));
+    } catch (err) {
+      console.error("Error loading delegation data:", err);
+    }
   }, [contract, account]);
+
+  useEffect(() => {
+    loadDelegationData();
+    // Reduced polling frequency from 5s to 60s to prevent rate limiting
+    const interval = setInterval(loadDelegationData, 60000);
+    return () => clearInterval(interval);
+  }, [loadDelegationData]);
 
   const handleDelegate = async (e) => {
     e.preventDefault();
@@ -41,20 +40,12 @@ export const VoteDelegation = ({ proposalId }) => {
     setIsDelegating(true);
 
     try {
-      // Validate address
-      if (!ethers.isAddress(delegate)) {
-        throw new Error("Invalid delegate address");
-      }
-
+      if (!ethers.isAddress(delegate)) throw new Error("Invalid delegate address");
       const tx = await contract.connect(signer).delegateVote(delegate);
       await tx.wait();
-
       setSuccess("Vote delegation successful!");
       setDelegate("");
-
-      // Refresh delegation data
-      const delegateAddr = await contract.getDelegate(account);
-      setCurrentDelegate(delegateAddr === ethers.ZeroAddress ? null : delegateAddr);
+      loadDelegationData();
     } catch (err) {
       setError(err.message || "Failed to delegate vote");
     } finally {
@@ -64,7 +55,6 @@ export const VoteDelegation = ({ proposalId }) => {
 
   const handleRevokeDelegation = async () => {
     if (!contract || !signer) return;
-
     setError(null);
     setSuccess(null);
     setIsDelegating(true);
@@ -72,9 +62,9 @@ export const VoteDelegation = ({ proposalId }) => {
     try {
       const tx = await contract.connect(signer).revokeDelegation();
       await tx.wait();
-
       setSuccess("Delegation revoked successfully!");
       setCurrentDelegate(null);
+      loadDelegationData();
     } catch (err) {
       setError(err.message || "Failed to revoke delegation");
     } finally {
@@ -94,7 +84,6 @@ export const VoteDelegation = ({ proposalId }) => {
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
       <h3 className="text-xl font-bold text-gray-800 mb-4">Vote Delegation</h3>
 
-      {/* Current Status */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -110,7 +99,6 @@ export const VoteDelegation = ({ proposalId }) => {
         </div>
       </div>
 
-      {/* Delegation Form */}
       <form onSubmit={handleDelegate} className="mb-4">
         <div className="flex gap-2 mb-2">
           <input
@@ -121,52 +109,20 @@ export const VoteDelegation = ({ proposalId }) => {
             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             disabled={isDelegating}
           />
-          <button
-            type="submit"
-            disabled={isDelegating || !delegate}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition"
-          >
+          <button type="submit" disabled={isDelegating || !delegate} className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
             {isDelegating ? "Delegating..." : "Delegate"}
           </button>
         </div>
-        <p className="text-xs text-gray-500">
-          ℹ️ Delegated voting power cannot be used directly. Revoke to regain control.
-        </p>
       </form>
 
-      {/* Revoke Button */}
       {currentDelegate && (
-        <button
-          onClick={handleRevokeDelegation}
-          disabled={isDelegating}
-          className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:bg-gray-400 transition mb-4"
-        >
+        <button onClick={handleRevokeDelegation} disabled={isDelegating} className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition mb-4">
           {isDelegating ? "Revoking..." : "Revoke Delegation"}
         </button>
       )}
 
-      {/* Feedback Messages */}
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-3">
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-          {success}
-        </div>
-      )}
-
-      {/* Info */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4 text-sm text-yellow-800">
-        <p className="font-semibold mb-1">How Vote Delegation Works:</p>
-        <ul className="list-disc list-inside space-y-1 text-xs">
-          <li>Delegate your voting power to another address</li>
-          <li>The delegate receives your tokens' voting weight</li>
-          <li>You cannot vote while delegation is active</li>
-          <li>Revoke anytime to regain voting control</li>
-        </ul>
-      </div>
+      {error && <div className="bg-red-100 text-red-700 px-4 py-3 rounded mb-3">{error}</div>}
+      {success && <div className="bg-green-100 text-green-700 px-4 py-3 rounded">{success}</div>}
     </div>
   );
 };
