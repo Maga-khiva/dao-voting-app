@@ -8,7 +8,7 @@ Built with React (Vite), Hardhat, and OpenZeppelin on Ethereum Sepolia.
 [![Frontend: Netlify](https://img.shields.io/badge/Frontend-Netlify-00c7b7)](https://maga-nft-marketplace.netlify.app/)
 
 ## Live Links
-- Frontend (Netlify): (https://dao-voting-dapp.netlify.app/)
+- Frontend (Netlify): https://dao-voting-dapp.netlify.app/
 
 ## Screenshot
 ![MAGA DAO Screenshot](./screenshot.png)
