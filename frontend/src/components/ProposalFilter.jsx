@@ -4,23 +4,25 @@ export function ProposalFilter({ onFilterChange }) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [status, setStatus] = useState("All");
+  const [sortOrder, setSortOrder] = useState("desc"); // Default to Newest First
 
   const handleChange = (newFilters) => {
-    onFilterChange({ ...{ search, category, status }, ...newFilters });
+    onFilterChange({ ...{ search, category, status, sortOrder }, ...newFilters });
   };
 
   const handleClear = () => {
     setSearch("");
     setCategory("All");
     setStatus("All");
-    onFilterChange({ search: "", category: "All", status: "All" });
+    setSortOrder("desc");
+    onFilterChange({ search: "", category: "All", status: "All", sortOrder: "desc" });
   };
 
   return (
     <div className="glacier-card p-6 mb-8">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Filter Engine</h3>
-        {(search || category !== "All" || status !== "All") && (
+        {(search || category !== "All" || status !== "All" || sortOrder !== "desc") && (
           <button
             onClick={handleClear}
             className="text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:text-cyan-500 transition-colors"
@@ -30,7 +32,7 @@ export function ProposalFilter({ onFilterChange }) {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="space-y-2">
           <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 ml-1">SEARCH</label>
           <div className="relative">
@@ -83,6 +85,21 @@ export function ProposalFilter({ onFilterChange }) {
             <option value="Closed">🔵 Closed</option>
             <option value="Executed">✅ Executed</option>
             <option value="Rejected">❌ Rejected</option>
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 ml-1">SORT ORDER</label>
+          <select
+            value={sortOrder}
+            onChange={(e) => {
+              setSortOrder(e.target.value);
+              handleChange({ sortOrder: e.target.value });
+            }}
+            className="glacier-input appearance-none"
+          >
+            <option value="desc">Newest First</option>
+            <option value="asc">Oldest First</option>
           </select>
         </div>
       </div>
