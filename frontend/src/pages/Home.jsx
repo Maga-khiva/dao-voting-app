@@ -34,6 +34,13 @@ export const Home = ({ onNavigate }) => {
     connectWallet();
   };
 
+  const scrollToGuide = () => {
+    const element = document.getElementById("how-it-works");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   const getNetworkName = () => {
     if (!chainId) return contractConfig.network || "Unknown";
     if (chainId === 11155111) return "Sepolia";
@@ -52,9 +59,17 @@ export const Home = ({ onNavigate }) => {
               <h1 className="text-3xl sm:text-4xl font-extrabold glacier-gradient-text tracking-tight">
                 MAGA ORBIT MARKET
               </h1>
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
-                Decentralized Governance Protocol
-              </p>
+              <div className="flex items-center gap-4">
+                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
+                  Decentralized Governance Protocol
+                </p>
+                <button 
+                  onClick={scrollToGuide}
+                  className="text-[10px] font-black text-cyan-600 dark:text-cyan-400 uppercase tracking-widest hover:underline"
+                >
+                  How it works?
+                </button>
+              </div>
             </div>
           </div>
 
@@ -102,10 +117,7 @@ export const Home = ({ onNavigate }) => {
         </div>
       </header>
 
-      {/* Guide Section */}
-      <GuideSection />
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
         {/* Main Content */}
         <div className="lg:col-span-8 space-y-6">
           <div className="flex items-center justify-between px-2">
@@ -194,6 +206,11 @@ export const Home = ({ onNavigate }) => {
             </div>
           </div>
         </aside>
+      </div>
+
+      {/* Guide Section at the bottom */}
+      <div id="how-it-works">
+        <GuideSection />
       </div>
 
       <DisconnectModal

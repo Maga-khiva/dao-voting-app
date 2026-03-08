@@ -77,9 +77,14 @@ export function Analytics({ onNavigate }) {
       <div className="flex items-center justify-between mb-10">
         <div className="flex items-center gap-4">
           <Logo className="w-10 h-10" />
-          <h1 className="text-2xl sm:text-3xl font-extrabold glacier-gradient-text tracking-tight">
-            GOVERNANCE ANALYTICS
-          </h1>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold glacier-gradient-text tracking-tight">
+              GOVERNANCE ANALYTICS
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-1">
+              Real-time insights into protocol health and community participation.
+            </p>
+          </div>
         </div>
         <button
           onClick={() => onNavigate("home")}
