@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useWeb3 } from "../hooks/useWeb3";
 import { parseErrorMessage } from "../utils/helpers";
-import { isVotingActive } from "../utils/daoService";
 import { ethers } from "ethers";
 import ProposalVotingABI from "../abi/ProposalVoting.json";
 import contractConfig from "../config/contract.json";
 import { CountdownTimer } from "./CountdownTimer";
 import { CopyButton } from "./CopyButton";
+import { StatusBadge } from "./StatusBadge";
 
 export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, filters = {} }) => {
   const { provider } = useWeb3();
@@ -80,13 +80,9 @@ export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, 
                   <CopyButton text={proposal.creator} label="Creator" />
                 </div>
               </div>
-              <div className="text-right space-y-2">
+              <div className="text-right flex flex-col items-end gap-2">
                 <CountdownTimer deadline={proposal.deadline} />
-                <div className={`text-[10px] font-black px-2 py-1 rounded border uppercase ${
-                  proposal.status === "Executed" ? "bg-purple-500/10 text-purple-500 border-purple-500/20" : "bg-green-500/10 text-green-500 border-green-500/20"
-                }`}>
-                  {proposal.status}
-                </div>
+                <StatusBadge status={proposal.status} deadline={proposal.deadline} />
               </div>
             </div>
             <p className="text-slate-500 dark:text-slate-400 text-sm line-clamp-2 mb-6">{proposal.description}</p>

@@ -9,6 +9,7 @@ import contractConfig from "../config/contract.json";
 import { CountdownTimer } from "./CountdownTimer";
 import { ApprovalBox } from "./ApprovalBox";
 import { CopyButton } from "./CopyButton";
+import { StatusBadge } from "./StatusBadge";
 
 export const VoteBox = ({ proposalId, onVoteSuccess }) => {
   const { contract, account, provider, signer } = useWeb3();
@@ -115,9 +116,7 @@ export const VoteBox = ({ proposalId, onVoteSuccess }) => {
           </div>
           <div className="flex flex-col items-end gap-3">
             <CountdownTimer deadline={proposal.deadline} />
-            <div className="px-4 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-black text-slate-500 tracking-widest uppercase">
-              {proposal.status}
-            </div>
+            <StatusBadge status={proposal.status} deadline={proposal.deadline} />
           </div>
         </div>
 
@@ -144,7 +143,7 @@ export const VoteBox = ({ proposalId, onVoteSuccess }) => {
           </div>
         </div>
 
-        {proposal.isVotingOpen ? (
+        {proposal.isVotingOpen && (proposal.deadline * 1000) > Date.now() ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <button onClick={() => handleVote(true)} disabled={isLoading || hasVoted} className="glacier-btn-primary bg-gradient-to-br from-green-500 to-emerald-600">VOTE YES</button>
             <button onClick={() => handleVote(false)} disabled={isLoading || hasVoted} className="glacier-btn-primary bg-gradient-to-br from-slate-500 to-slate-700">VOTE NO</button>
