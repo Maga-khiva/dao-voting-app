@@ -11,7 +11,7 @@ Built with React (Vite), Hardhat, and OpenZeppelin on Ethereum Sepolia.
 - Frontend (Netlify):[ https://maga-nft-marketplace.netlify.app/](https://dao-voting-dapp.netlify.app/)
 
 ## Screenshot
-![MAGA DAO Screenshot](./frontend/screenshot.png)
+![MAGA DAO Screenshot](./screenshot.png)
 
 ## Smart Contracts
 - Network: **Sepolia (11155111)**
