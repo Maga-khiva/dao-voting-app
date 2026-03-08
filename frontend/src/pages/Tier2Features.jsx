@@ -36,6 +36,13 @@ export const Tier2Features = ({ onNavigate }) => {
         </button>
       </div>
 
+      <div className="glacier-card p-6 mb-10 border-purple-500/20 bg-purple-500/5">
+        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+          The Advanced Protocol suite allows members to fine-tune their participation through liquid democracy and asset management. 
+          Whether you are delegating power to a trusted representative or managing administrative roles, these tools ensure the DAO remains flexible and secure.
+        </p>
+      </div>
+
       <div className="flex flex-wrap gap-3 mb-8">
         {tabs.map((tab) => (
           <button
@@ -54,11 +61,33 @@ export const Tier2Features = ({ onNavigate }) => {
       </div>
 
       <div className="glacier-card p-8 sm:p-12">
-        {activeTab === "delegation" && <VoteDelegation />}
-        {activeTab === "roles" && <RoleManagement />}
+        {activeTab === "delegation" && (
+          <div className="space-y-6">
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4">
+              Liquid Democracy: Assign your voting weight to another address without transferring your tokens. 
+              This allows experts to vote on your behalf while you retain full ownership of your assets.
+            </p>
+            <VoteDelegation />
+          </div>
+        )}
+        {activeTab === "roles" && (
+          <div className="space-y-6">
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4">
+              Access Control: Admins can assign specialized roles to community members to distribute responsibility. 
+              Moderators manage proposal amendments, while Members hold the core power to propose and vote.
+            </p>
+            <RoleManagement />
+          </div>
+        )}
         {activeTab === "transfer" && (
-          <div className="flex justify-center">
-            <TokenTransfer />
+          <div className="space-y-6">
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4 text-center">
+              Asset Management: Securely transfer your GOV tokens to other wallets within the ecosystem. 
+              Note that transfers after a proposal snapshot will not affect your voting power for that specific proposal.
+            </p>
+            <div className="flex justify-center">
+              <TokenTransfer />
+            </div>
           </div>
         )}
         {activeTab === "info" && (

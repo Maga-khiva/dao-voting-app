@@ -94,6 +94,13 @@ export function Analytics({ onNavigate }) {
         </button>
       </div>
 
+      <div className="glacier-card p-6 mb-10 border-cyan-500/20 bg-cyan-500/5">
+        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+          The Analytics dashboard provides a transparent overview of the MAGA DAO governance lifecycle, tracking every proposal from initiation to final execution. 
+          By monitoring these metrics, members can assess the protocol's decentralization level and identify trends in community consensus and voter engagement.
+        </p>
+      </div>
+
       {!account ? (
         <div className="glacier-card p-20 text-center">
           <p className="text-slate-500 dark:text-slate-400 font-black tracking-widest">CONNECT WALLET TO VIEW ANALYTICS</p>

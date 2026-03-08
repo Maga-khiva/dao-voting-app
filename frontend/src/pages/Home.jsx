@@ -57,7 +57,7 @@ export const Home = ({ onNavigate }) => {
             <Logo className="w-12 h-12 drop-shadow-lg" />
             <div>
               <h1 className="text-3xl sm:text-4xl font-extrabold glacier-gradient-text tracking-tight">
-                MAGA ORBIT MARKET
+                MAGA DAO
               </h1>
               <div className="flex items-center gap-4">
                 <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
