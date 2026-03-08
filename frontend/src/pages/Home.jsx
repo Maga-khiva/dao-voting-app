@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { ProposalList } from "../components/ProposalList";
 import { ProposalFilter } from "../components/ProposalFilter";
+import { GuideSection } from "../components/GuideSection";
 import { DisconnectModal } from "../components/DisconnectModal";
 import { useWeb3 } from "../hooks/useWeb3";
 import { Logo } from "../components/Logo";
@@ -49,7 +50,7 @@ export const Home = ({ onNavigate }) => {
             <Logo className="w-12 h-12 drop-shadow-lg" />
             <div>
               <h1 className="text-3xl sm:text-4xl font-extrabold glacier-gradient-text tracking-tight">
-                GLACIER DAO
+                MAGA ORBIT MARKET
               </h1>
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
                 Decentralized Governance Protocol
@@ -100,6 +101,9 @@ export const Home = ({ onNavigate }) => {
           </div>
         </div>
       </header>
+
+      {/* Guide Section */}
+      <GuideSection />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Main Content */}
