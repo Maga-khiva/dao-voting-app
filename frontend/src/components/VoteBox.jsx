@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useWeb3 } from "../hooks/useWeb3";
 import { useTokenBalance } from "../hooks/useTokenBalance";
 import { parseErrorMessage, formatAddress } from "../utils/helpers";
-import { isVotingActive } from "../utils/daoService";
 import { ethers } from "ethers";
 import ProposalVotingABI from "../abi/ProposalVoting.json";
 import contractConfig from "../config/contract.json";
@@ -20,11 +19,12 @@ export const VoteBox = ({ proposalId, onVoteSuccess }) => {
   const [success, setSuccess] = useState(false);
   const [userTokenWeight, setUserTokenWeight] = useState("0");
   const [effectiveVotingPower, setEffectiveVotingPower] = useState("0");
+  const [recentVotes, setRecentVotes] = useState([]);
 
   const loadProposal = useCallback(async () => {
     if (proposalId === null || !provider) return;
     try {
-      const readContract = new ethers.Contract(contractConfig.address, ProposalVotingABI, provider);
+      const readContract = new ethers.Contract(contractConfig.address, ProposalVotingABI.abi || ProposalVotingABI, provider);
       const result = await readContract.getProposal(proposalId);
       
       setProposal({
@@ -38,6 +38,7 @@ export const VoteBox = ({ proposalId, onVoteSuccess }) => {
         creator: result[6],
         isVotingOpen: result[7],
         category: result[8],
+        approvalsGiven: result[9],
       });
 
       if (account) {
@@ -51,9 +52,19 @@ export const VoteBox = ({ proposalId, onVoteSuccess }) => {
         const power = await readContract.getEffectiveVotingPower(account);
         setEffectiveVotingPower(ethers.formatEther(power));
       }
-    } catch (err) {
-      console.error(err);
-    }
+
+      // Load recent votes from events
+      const filter = readContract.filters.VoteCasted(proposalId);
+      const events = await readContract.queryFilter(filter, -1000); // Last 1000 blocks
+      const formattedVotes = events.map(e => ({
+        voter: e.args[1],
+        support: e.args[2],
+        weight: ethers.formatEther(e.args[3]),
+        txHash: e.transactionHash
+      })).reverse().slice(0, 5);
+      setRecentVotes(formattedVotes);
+
+    } catch (err) { console.error(err); }
   }, [proposalId, provider, account]);
 
   useEffect(() => {
@@ -62,8 +73,7 @@ export const VoteBox = ({ proposalId, onVoteSuccess }) => {
 
   const handleVote = async (support) => {
     if (!contract || !account) return;
-    setIsLoading(true);
-    setError(null);
+    setIsLoading(true); setError(null);
     try {
       const tx = await contract.vote(proposalId, support);
       await tx.wait();
@@ -73,11 +83,8 @@ export const VoteBox = ({ proposalId, onVoteSuccess }) => {
         loadProposal();
         if (onVoteSuccess) onVoteSuccess();
       }, 2000);
-    } catch (err) {
-      setError(parseErrorMessage(err));
-    } finally {
-      setIsLoading(false);
-    }
+    } catch (err) { setError(parseErrorMessage(err)); }
+    finally { setIsLoading(false); }
   };
 
   if (!proposal) return (
@@ -192,6 +199,31 @@ export const VoteBox = ({ proposalId, onVoteSuccess }) => {
             </button>
           </div>
         )}
+
+        {/* Recent Activity Section */}
+        <div className="mt-12 pt-12 border-t border-slate-100 dark:border-slate-800">
+          <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-6">Recent Activity</h3>
+          <div className="space-y-3">
+            {recentVotes.length === 0 ? (
+              <p className="text-xs font-bold text-slate-400 italic">No votes recorded yet...</p>
+            ) : (
+              recentVotes.map((v, i) => (
+                <div key={i} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-white/10">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2 h-2 rounded-full ${v.support ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                    <span className="text-xs font-mono font-bold text-slate-600 dark:text-slate-300">{formatAddress(v.voter)}</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-[10px] font-black text-slate-400 uppercase">{parseFloat(v.weight).toFixed(2)} GOV</span>
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded ${v.support ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+                      {v.support ? 'YES' : 'NO'}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
 
         {proposal && !proposal.executed && !proposal.isVotingOpen && (
           <div className="mt-10 pt-10 border-t border-slate-100 dark:border-slate-800">
