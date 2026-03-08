@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useWeb3 } from "../hooks/useWeb3";
 import { useTokenBalance } from "../hooks/useTokenBalance";
-import { parseErrorMessage } from "../utils/helpers";
+import { parseErrorMessage, formatAddress } from "../utils/helpers";
 import { isVotingActive } from "../utils/daoService";
 import { ethers } from "ethers";
 import ProposalVotingABI from "../abi/ProposalVoting.json";
@@ -11,29 +11,22 @@ import { ApprovalBox } from "./ApprovalBox";
 
 export const VoteBox = ({ proposalId, onVoteSuccess }) => {
   const { contract, account, provider } = useWeb3();
-  const { balance, loading: balanceLoading } = useTokenBalance();
+  const { balance } = useTokenBalance();
   const [proposal, setProposal] = useState(null);
   const [hasVoted, setHasVoted] = useState(false);
   const [userVote, setUserVote] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const [isVotingOpen, setIsVotingOpen] = useState(false);
   const [userTokenWeight, setUserTokenWeight] = useState("0");
   const [effectiveVotingPower, setEffectiveVotingPower] = useState("0");
 
   const loadProposal = useCallback(async () => {
     if (proposalId === null || !provider) return;
-  
     try {
-      const readContract = new ethers.Contract(
-        contractConfig.address,
-        ProposalVotingABI,
-        provider
-      );
-  
+      const readContract = new ethers.Contract(contractConfig.address, ProposalVotingABI, provider);
       const result = await readContract.getProposal(proposalId);
-  
+      
       setProposal({
         id: proposalId,
         title: result[0],
@@ -41,77 +34,40 @@ export const VoteBox = ({ proposalId, onVoteSuccess }) => {
         yesVotes: Number(result[2]),
         noVotes: Number(result[3]),
         deadline: Number(result[4]),
-        executed: result[5],
+        status: result[5],
         creator: result[6],
         isVotingOpen: result[7],
-        snapshotBlock: Number(result[8] || 0),
+        category: result[8],
       });
-  
-      setIsVotingOpen(result[7]);
-      setError(null);
-  
+
       if (account) {
         const voted = await readContract.hasVoted(proposalId, account);
         setHasVoted(voted);
-
         if (voted) {
           const voteData = await readContract.getVote(proposalId, account);
           setUserVote(voteData[1]);
           setUserTokenWeight(ethers.formatEther(voteData[2]));
         }
-
-        try {
-          const effectivePower = await readContract.getEffectiveVotingPower(account);
-          setEffectiveVotingPower(ethers.formatEther(effectivePower));
-        } catch (err) {
-          setEffectiveVotingPower(balance);
-        }
+        const power = await readContract.getEffectiveVotingPower(account);
+        setEffectiveVotingPower(ethers.formatEther(power));
       }
     } catch (err) {
-      if (!err.message.includes("ProposalDoesNotExist")) {
-        const errorMessage = parseErrorMessage(err);
-        setError(errorMessage);
-      }
+      console.error(err);
     }
-  }, [proposalId, provider, account, balance]);
+  }, [proposalId, provider, account]);
 
   useEffect(() => {
     loadProposal();
-
-    // Poll every 60 seconds instead of relying on state dependencies that cause loops
-    const interval = setInterval(loadProposal, 60000);
-    return () => clearInterval(interval);
   }, [loadProposal]);
 
   const handleVote = async (support) => {
-    if (!contract || !account) {
-      setError("Please connect your wallet");
-      return;
-    }
-
-    if (!isVotingActive(proposal)) {
-      setError("Voting period is over for this proposal");
-      return;
-    }
-
-    if (hasVoted) {
-      setError("You have already voted on this proposal");
-      return;
-    }
-
-    if (parseFloat(balance) === 0) {
-      setError("You need at least 1 token to vote");
-      return;
-    }
-
+    if (!contract || !account) return;
     setIsLoading(true);
     setError(null);
-
     try {
       const tx = await contract.vote(proposalId, support);
       await tx.wait();
       setSuccess(true);
-      
       setTimeout(() => {
         setSuccess(false);
         loadProposal();
@@ -124,101 +80,125 @@ export const VoteBox = ({ proposalId, onVoteSuccess }) => {
     }
   };
 
-  if (!proposal) {
-    return (
-      <div className="card text-center py-12">
-        <div className="text-4xl mb-4">⏳</div>
-        <p className="text-gray-600">Loading proposal...</p>
-      </div>
-    );
-  }
+  if (!proposal) return (
+    <div className="glacier-card p-20 text-center">
+      <div className="w-12 h-12 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4"></div>
+      <p className="text-slate-500 font-bold text-xs tracking-widest">CRYSTALLIZING DATA</p>
+    </div>
+  );
 
   const totalVotes = proposal.yesVotes + proposal.noVotes;
-  const yesPercentage = totalVotes > 0 ? ((proposal.yesVotes / totalVotes) * 100).toFixed(1) : 0;
-  const noPercentage = totalVotes > 0 ? ((proposal.noVotes / totalVotes) * 100).toFixed(1) : 0;
+  const yesPercentage = totalVotes > 0 ? (proposal.yesVotes / totalVotes) * 100 : 0;
+  const noPercentage = totalVotes > 0 ? (proposal.noVotes / totalVotes) * 100 : 0;
 
   return (
-    <div className="max-w-3xl rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-900 p-6 sm:p-10 fade-in">
-      <div className="flex justify-between items-start mb-6">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 dark:text-white">{proposal.title}</h2>
-        <CountdownTimer deadline={proposal.deadline} />
-      </div>
-      <p className="text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-        {proposal.description}
-      </p>
+    <div className="space-y-8">
+      <div className="glacier-card p-8 sm:p-12">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-6 mb-10">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="px-4 py-1 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-xs font-black uppercase tracking-widest rounded-xl border border-cyan-500/20">
+                {proposal.category}
+              </span>
+              <span className="text-slate-400 font-mono text-sm">PROPOSAL #{proposal.id}</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-800 dark:text-white leading-tight">
+              {proposal.title}
+            </h2>
+            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm font-medium">
+              <span>Proposed by</span>
+              <span className="font-mono text-cyan-600 dark:text-cyan-400">{formatAddress(proposal.creator)}</span>
+            </div>
+          </div>
+          <div className="flex flex-col items-end gap-3">
+            <CountdownTimer deadline={proposal.deadline} />
+            <div className="px-4 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-black text-slate-500 tracking-widest">
+              {proposal.status.toUpperCase()}
+            </div>
+          </div>
+        </div>
 
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-6 rounded-2xl mb-8 border border-gray-100 dark:border-gray-700 shadow-sm">
+        <div className="prose dark:prose-invert max-w-none mb-12">
+          <p className="text-slate-600 dark:text-slate-300 text-lg leading-relaxed whitespace-pre-wrap">
+            {proposal.description}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+          <div className="glacier-card bg-green-500/5 dark:bg-green-500/10 p-6 border-green-500/20">
+            <div className="flex justify-between items-end mb-4">
+              <span className="text-xs font-black text-green-600 dark:text-green-400 tracking-widest">YES VOTES</span>
+              <span className="text-2xl font-black text-green-600 dark:text-green-400">{proposal.yesVotes}</span>
+            </div>
+            <div className="w-full h-3 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-green-500 transition-all duration-1000" style={{ width: `${yesPercentage}%` }} />
+            </div>
+            <p className="text-right text-[10px] font-bold text-slate-400 mt-2">{yesPercentage.toFixed(1)}% CONSENSUS</p>
+          </div>
+
+          <div className="glacier-card bg-red-500/5 dark:bg-red-500/10 p-6 border-red-500/20">
+            <div className="flex justify-between items-end mb-4">
+              <span className="text-xs font-black text-red-600 dark:text-red-400 tracking-widest">NO VOTES</span>
+              <span className="text-2xl font-black text-red-600 dark:text-red-400">{proposal.noVotes}</span>
+            </div>
+            <div className="w-full h-3 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-red-500 transition-all duration-1000" style={{ width: `${noPercentage}%` }} />
+            </div>
+            <p className="text-right text-[10px] font-bold text-slate-400 mt-2">{noPercentage.toFixed(1)}% DISSENT</p>
+          </div>
+        </div>
+
         {account && (
-          <div className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-700 dark:text-gray-200 mb-2">
-              💰 Your Balance: <span className="font-bold text-lg text-blue-600">{parseFloat(balance).toFixed(2)} tokens</span>
-            </p>
-            <p className="text-sm text-gray-700 dark:text-gray-200 mb-2">
-              ⚡ Your Voting Power: <span className="font-bold text-lg text-purple-600">{parseFloat(effectiveVotingPower).toFixed(2)} votes</span>
-            </p>
+          <div className="glacier-card bg-cyan-500/5 dark:bg-cyan-500/10 p-6 border-cyan-500/20 mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-cyan-500 flex items-center justify-center text-white text-xl shadow-lg shadow-cyan-500/20">⚡</div>
+              <div>
+                <p className="text-[10px] font-black text-cyan-600 dark:text-cyan-400 tracking-widest uppercase">Your Voting Power</p>
+                <p className="text-xl font-black text-slate-800 dark:text-white">{parseFloat(effectiveVotingPower).toFixed(2)} GOV</p>
+              </div>
+            </div>
+            {hasVoted && (
+              <div className="px-6 py-2 bg-white/50 dark:bg-slate-800/50 rounded-2xl border border-white/20 text-sm font-bold text-slate-700 dark:text-slate-200">
+                You voted <span className={userVote ? "text-green-500" : "text-red-500"}>{userVote ? "YES" : "NO"}</span> with {parseFloat(userTokenWeight).toFixed(2)} power
+              </div>
+            )}
           </div>
         )}
 
-        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-          📊 Total Votes: <span className="font-bold">{totalVotes}</span>
-        </p>
+        {error && <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl font-bold text-sm">⚠️ {error}</div>}
+        {success && <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 text-green-500 rounded-2xl font-bold text-sm">✅ VOTE CRYSTALLIZED ON-CHAIN</div>}
 
-        <div className="space-y-4">
-          <div>
-            <div className="flex justify-between mb-2">
-              <span className="font-semibold text-green-700">👍 Yes: {proposal.yesVotes}</span>
-              <span className="font-bold text-gray-700 dark:text-gray-300">{yesPercentage}%</span>
-            </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-              <div className="bg-gradient-to-r from-green-400 to-cyan-400 h-full transition-all duration-500" style={{ width: `${yesPercentage}%` }} />
-            </div>
+        {!proposal.isVotingOpen ? (
+          <div className="glacier-card p-8 text-center bg-slate-100 dark:bg-slate-800/50 border-dashed">
+            <p className="text-slate-500 dark:text-slate-400 font-black tracking-widest">VOTING PERIOD HAS CONCLUDED</p>
           </div>
+        ) : !account ? (
+          <button onClick={() => connectWallet()} className="glacier-btn-primary w-full py-5">CONNECT WALLET TO VOTE</button>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <button 
+              onClick={() => handleVote(true)} 
+              disabled={isLoading || hasVoted} 
+              className="glacier-btn-primary bg-gradient-to-br from-green-400 to-green-600 shadow-green-500/20 disabled:opacity-50"
+            >
+              {isLoading ? "PROCESSING..." : "VOTE YES"}
+            </button>
+            <button 
+              onClick={() => handleVote(false)} 
+              disabled={isLoading || hasVoted} 
+              className="glacier-btn-primary bg-gradient-to-br from-slate-400 to-slate-600 shadow-slate-500/20 disabled:opacity-50"
+            >
+              {isLoading ? "PROCESSING..." : "VOTE NO"}
+            </button>
+          </div>
+        )}
 
-          <div>
-            <div className="flex justify-between mb-2">
-              <span className="font-semibold text-red-700">👎 No: {proposal.noVotes}</span>
-              <span className="font-bold text-gray-700 dark:text-gray-300">{noPercentage}%</span>
-            </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-              <div className="bg-gradient-to-r from-red-400 to-pink-400 h-full transition-all duration-500" style={{ width: `${noPercentage}%` }} />
-            </div>
+        {proposal && !proposal.executed && !proposal.isVotingOpen && (
+          <div className="mt-10 pt-10 border-t border-slate-100 dark:border-slate-800">
+            <ApprovalBox proposalId={proposalId} proposal={proposal} status={proposal.status} />
           </div>
-        </div>
+        )}
       </div>
-
-      {error && <div className="mb-6 p-4 bg-red-100 text-red-700 rounded border-l-4 border-red-500">⚠️ {error}</div>}
-      {success && <div className="mb-6 p-4 bg-green-100 text-green-700 rounded border-l-4 border-green-500">✅ Vote recorded!</div>}
-
-      {hasVoted && (
-        <div className="mb-6 p-4 bg-blue-100 text-blue-700 rounded border-l-4 border-blue-500">
-          ✓ You voted <strong>{userVote ? "YES 👍" : "NO 👎"}</strong> with <strong>{parseFloat(userTokenWeight).toFixed(2)} power</strong>
-        </div>
-      )}
-
-      {!isVotingOpen ? (
-        <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-xl mb-6 border-2 border-gray-300 dark:border-gray-700 text-center font-bold text-gray-600">
-          🔴 Voting has ended
-        </div>
-      ) : !account ? (
-        <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-xl mb-6 border-2 border-gray-300 dark:border-gray-700 text-center font-semibold text-gray-600">
-          🔗 Connect wallet to vote
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <button onClick={() => handleVote(true)} disabled={isLoading || hasVoted} className="btn-success hover:scale-105 transition-all">
-            {isLoading ? "⏳ Voting..." : "👍 Vote Yes"}
-          </button>
-          <button onClick={() => handleVote(false)} disabled={isLoading || hasVoted} className="btn-secondary hover:scale-105 transition-all">
-            {isLoading ? "⏳ Voting..." : "👎 Vote No"}
-          </button>
-        </div>
-      )}
-
-      {proposal && !proposal.executed && !isVotingOpen && (
-        <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
-          <ApprovalBox proposalId={proposalId} proposal={proposal} status={proposal.executed ? "Executed" : "Closed"} />
-        </div>
-      )}
     </div>
   );
 };

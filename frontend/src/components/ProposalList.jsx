@@ -8,16 +8,13 @@ import contractConfig from "../config/contract.json";
 import { CountdownTimer } from "./CountdownTimer";
 
 export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, filters = {} }) => {
-  const { contract, provider } = useWeb3();
+  const { provider } = useWeb3();
   const [proposals, setProposals] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const loadProposals = useCallback(async () => {
-    if (!provider) {
-      return;
-    }
-
+    if (!provider) return;
     setIsLoading(true);
     setError(null);
 
@@ -29,17 +26,7 @@ export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, 
       );
 
       const result = await readContract.getProposals();
-
-      const [
-        titles,
-        descriptions,
-        yesVotes,
-        noVotes,
-        deadlines,
-        statuses,
-        creators,
-        categories,
-      ] = result;
+      const [titles, descriptions, yesVotes, noVotes, deadlines, statuses, creators, categories] = result;
 
       const proposalList = titles.map((title, index) => ({
         id: index.toString(),
@@ -67,32 +54,8 @@ export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, 
     loadProposals();
   }, [loadProposals, refreshTrigger]);
 
-  useEffect(() => {
-    if (!provider) return;
-
-    const eventContract = new ethers.Contract(
-      contractConfig.address,
-      ProposalVotingABI.abi || ProposalVotingABI,
-      provider
-    );
-
-    const onProposalCreated = () => {
-      loadProposals();
-    };
-
-    eventContract.on("ProposalCreated", onProposalCreated);
-
-    return () => {
-      try {
-        eventContract.removeAllListeners("ProposalCreated");
-      } catch (err) {}
-    };
-  }, [provider, loadProposals]);
-
   const getProposalStatus = (proposal) => {
-    if (proposal.status && proposal.status !== "Active") {
-      return proposal.status;
-    }
+    if (proposal.status && proposal.status !== "Active") return proposal.status;
     return isVotingActive(proposal) ? "Active" : "Closed";
   };
 
@@ -100,149 +63,111 @@ export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, 
     const searchTerm = (filters.search || "").toLowerCase();
     const titleMatches = proposal.title.toLowerCase().includes(searchTerm);
     const descMatches = proposal.description.toLowerCase().includes(searchTerm);
-
-    const categoryMatches =
-      filters.category === "All" || proposal.category === filters.category;
-
+    const categoryMatches = filters.category === "All" || proposal.category === filters.category;
     const status = getProposalStatus(proposal);
-    const statusMatches =
-      filters.status === "All" || status === filters.status;
-
+    const statusMatches = filters.status === "All" || status === filters.status;
     return (titleMatches || descMatches) && categoryMatches && statusMatches;
   });
 
   if (isLoading && proposals.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 space-y-4">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-gray-500 font-medium">Fetching proposals from blockchain...</p>
+      <div className="flex flex-col items-center justify-center py-24 space-y-6">
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin"></div>
+          <div className="absolute inset-0 flex items-center justify-center text-xl">❄️</div>
+        </div>
+        <p className="text-slate-500 dark:text-slate-400 font-bold tracking-widest text-xs">SYNCING WITH BLOCKCHAIN</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-2 sm:p-0">
+    <div className="space-y-6">
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl flex items-center gap-3">
+        <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl flex items-center gap-3 font-semibold">
           <span>⚠️</span>
           <p>{error}</p>
         </div>
       )}
 
-      <div className="grid gap-6">
-        {filteredProposals.length === 0 ? (
-          <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-3xl border-2 border-dashed border-gray-200 dark:border-gray-700">
-            <div className="text-6xl mb-4">🗳️</div>
-            <p className="text-2xl font-bold text-gray-700 dark:text-white mb-2">
-              {proposals.length === 0 ? "No Proposals Yet" : "No Matching Proposals"}
-            </p>
-            <p className="text-gray-500 dark:text-gray-400 mb-8">
-              {proposals.length === 0
-                ? "Be the first to create a proposal and start the conversation"
-                : "Try adjusting your filters or search terms"}
-            </p>
-            {onCreateClick && proposals.length === 0 && (
-              <button
-                onClick={onCreateClick}
-                className="inline-block px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-lg hover:shadow-lg hover:scale-105 transition-all"
-              >
-                ➕ Create First Proposal
-              </button>
-            )}
-          </div>
-        ) : (
-          filteredProposals.map((proposal) => (
-            <div
-              key={proposal.id}
-              className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all group"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div className="min-w-0">
-                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-1 block">
+      {filteredProposals.length === 0 ? (
+        <div className="glacier-card p-20 text-center border-dashed border-2">
+          <div className="text-6xl mb-6 opacity-50">🧊</div>
+          <h3 className="text-2xl font-bold text-slate-700 dark:text-white mb-2">No Proposals Found</h3>
+          <p className="text-slate-500 dark:text-slate-400 mb-8">The governance crystal is currently empty.</p>
+          {onCreateClick && proposals.length === 0 && (
+            <button onClick={onCreateClick} className="glacier-btn-primary">
+              INITIATE FIRST PROPOSAL
+            </button>
+          )}
+        </div>
+      ) : (
+        filteredProposals.map((proposal) => (
+          <div
+            key={proposal.id}
+            className="glacier-card p-6 sm:p-8 hover:border-cyan-400/50 group cursor-pointer"
+            onClick={() => onSelectProposal(proposal.id)}
+          >
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
+              <div className="space-y-1">
+                <div className="flex items-center gap-3">
+                  <span className="px-3 py-1 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-[10px] font-black uppercase tracking-widest rounded-lg border border-cyan-500/20">
                     {proposal.category}
                   </span>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white truncate">
-                    {proposal.title}
-                  </h3>
+                  <span className="text-slate-400 text-xs font-mono">#{proposal.id.padStart(3, '0')}</span>
                 </div>
-                <div className="flex flex-col items-end gap-2">
-                  <CountdownTimer deadline={proposal.deadline} />
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
-                      proposal.status === "Executed"
-                        ? "bg-purple-100 text-purple-600"
-                        : proposal.status === "Active"
-                        ? "bg-green-100 text-green-600"
-                        : "bg-red-100 text-red-600"
-                    }`}
-                  >
-                    {proposal.status || "Active"}
+                <h3 className="text-xl font-extrabold text-slate-800 dark:text-white group-hover:glacier-gradient-text transition-all">
+                  {proposal.title}
+                </h3>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <CountdownTimer deadline={proposal.deadline} />
+                <span className={`text-[10px] font-black px-3 py-1 rounded-full border ${
+                  proposal.status === "Executed" ? "bg-purple-500/10 text-purple-500 border-purple-500/20" :
+                  proposal.status === "Active" ? "bg-green-500/10 text-green-500 border-green-500/20" :
+                  "bg-slate-500/10 text-slate-500 border-slate-500/20"
+                }`}>
+                  {proposal.status.toUpperCase()}
+                </span>
+              </div>
+            </div>
+
+            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-8 line-clamp-2">
+              {proposal.description}
+            </p>
+
+            <div className="space-y-4">
+              <div className="flex justify-between items-end">
+                <div className="flex gap-8">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Yes Votes</span>
+                    <span className="text-lg font-black text-cyan-600 dark:text-cyan-400">{proposal.yesVotes}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">No Votes</span>
+                    <span className="text-lg font-black text-slate-500 dark:text-slate-300">{proposal.noVotes}</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Consensus</span>
+                  <span className="text-lg font-black text-slate-800 dark:text-white">
+                    {proposal.yesVotes + proposal.noVotes > 0 
+                      ? Math.round((proposal.yesVotes / (proposal.yesVotes + proposal.noVotes)) * 100) 
+                      : 0}%
                   </span>
                 </div>
               </div>
-
-              <p className="text-gray-600 dark:text-gray-400 mb-6 line-clamp-2">
-                {proposal.description}
-              </p>
-
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Voting Progress</p>
-                  {proposal.yesVotes + proposal.noVotes > 0 ? (
-                    <p className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                      {Math.round(
-                        (proposal.yesVotes / (proposal.yesVotes + proposal.noVotes)) * 100
-                      )}
-                      % Yes
-                    </p>
-                  ) : (
-                    <p className="text-sm font-bold text-gray-400">No votes yet</p>
-                  )}
-                </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
-                  {proposal.yesVotes + proposal.noVotes > 0 ? (
-                    <div
-                      className="bg-gradient-to-r from-blue-500 to-cyan-400 h-full rounded-full transition-all duration-500"
-                      style={{
-                        width: `${
-                          (proposal.yesVotes /
-                            (proposal.yesVotes + proposal.noVotes)) *
-                          100
-                        }%`,
-                      }}
-                    />
-                  ) : (
-                    <div className="bg-gray-300 dark:bg-gray-600 h-full w-full rounded-full" />
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between mt-auto pt-6 border-t border-gray-50 dark:border-gray-700">
-                <div className="flex gap-6">
-                  <div className="text-sm">
-                    <span className="font-bold text-blue-600 dark:text-blue-400">
-                      👍 {proposal.yesVotes}
-                    </span>{" "}
-                    <span className="text-gray-600 dark:text-gray-400">Yes</span>
-                  </div>
-                  <div className="text-sm">
-                    <span className="font-bold text-gray-500 dark:text-gray-400">
-                      👎 {proposal.noVotes}
-                    </span>{" "}
-                    <span className="text-gray-600 dark:text-gray-400">No</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => onSelectProposal(proposal.id)}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-full font-bold hover:bg-blue-700 hover:scale-105 transition-all active:scale-95 shadow-sm"
-                >
-                  View Details
-                </button>
+              
+              <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
+                <div 
+                  className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-1000"
+                  style={{ width: `${proposal.yesVotes + proposal.noVotes > 0 ? (proposal.yesVotes / (proposal.yesVotes + proposal.noVotes)) * 100 : 0}%` }}
+                />
               </div>
             </div>
-          ))
-        )}
-      </div>
+          </div>
+        ))
+      )}
     </div>
   );
 };

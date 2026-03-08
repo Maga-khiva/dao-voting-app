@@ -5,8 +5,8 @@ export function ProposalFilter({ onFilterChange }) {
   const [category, setCategory] = useState("All");
   const [status, setStatus] = useState("All");
 
-  const handleChange = () => {
-    onFilterChange({ search, category, status });
+  const handleChange = (newFilters) => {
+    onFilterChange({ ...{ search, category, status }, ...newFilters });
   };
 
   const handleClear = () => {
@@ -17,49 +17,48 @@ export function ProposalFilter({ onFilterChange }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-800">🔍 Filter Proposals</h3>
+    <div className="glacier-card p-6 mb-8">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Filter Engine</h3>
         {(search || category !== "All" || status !== "All") && (
           <button
             onClick={handleClear}
-            className="text-sm text-blue-600 hover:text-blue-800 font-semibold hover:scale-105 transition-all"
+            className="text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:text-cyan-500 transition-colors"
           >
-            ✕ Clear Filters
+            RESET FILTERS
           </button>
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Search */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Search by Title
-          </label>
-          <input
-            type="text"
-            placeholder="Type to search..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              onFilterChange({ search: e.target.value, category, status });
-            }}
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 ml-1">SEARCH</label>
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Find proposal..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                handleChange({ search: e.target.value });
+              }}
+              className="glacier-input pl-10"
+            />
+            <svg className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
         </div>
 
-        {/* Category Filter */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Category
-          </label>
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 ml-1">CATEGORY</label>
           <select
             value={category}
             onChange={(e) => {
               setCategory(e.target.value);
-              handleChange();
+              handleChange({ category: e.target.value });
             }}
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="glacier-input appearance-none"
           >
             <option value="All">All Categories</option>
             <option value="Treasury">💰 Treasury</option>
@@ -69,18 +68,15 @@ export function ProposalFilter({ onFilterChange }) {
           </select>
         </div>
 
-        {/* Status Filter */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Status
-          </label>
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 ml-1">STATUS</label>
           <select
             value={status}
             onChange={(e) => {
               setStatus(e.target.value);
-              handleChange();
+              handleChange({ status: e.target.value });
             }}
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="glacier-input appearance-none"
           >
             <option value="All">All Statuses</option>
             <option value="Active">🟢 Active</option>

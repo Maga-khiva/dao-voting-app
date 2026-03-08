@@ -29,6 +29,7 @@ function App() {
   const handleNavigate = (page, params = {}) => {
     setCurrentPage(page);
     setPageParams(params);
+    window.scrollTo(0, 0);
   };
 
   const handleProposalCreated = () => {
@@ -38,9 +39,7 @@ function App() {
   const renderPage = () => {
     switch (currentPage) {
       case "home":
-        return (
-          <Home onNavigate={handleNavigate} />
-        );
+        return <Home onNavigate={handleNavigate} />;
       case "create":
         return (
           <CreateProposalPage
@@ -57,13 +56,9 @@ function App() {
           />
         );
       case "analytics":
-        return (
-          <Analytics onNavigate={handleNavigate} />
-        );
+        return <Analytics onNavigate={handleNavigate} />;
       case "tier2":
-        return (
-          <Tier2Features onNavigate={handleNavigate} />
-        );
+        return <Tier2Features onNavigate={handleNavigate} />;
       default:
         return <Home onNavigate={handleNavigate} />;
     }
@@ -72,22 +67,24 @@ function App() {
   return (
     <DarkModeContext.Provider value={{ darkMode, setDarkMode }}>
       <Web3Provider contractAddress={contractInfo.address}>
-        <div className={"min-h-screen " + (darkMode ? "bg-gray-900" : "bg-[#f8fafc]")}>
-          {/* Dark mode toggle button in header */}
-          <div className="fixed top-4 right-4 z-50">
+        <div className={`min-h-screen transition-colors duration-500 ${darkMode ? "glacier-bg-dark" : "glacier-bg-light"}`}>
+          {/* Dark mode toggle button */}
+          <div className="fixed bottom-6 right-6 z-50">
             <button
               onClick={() => setDarkMode((d) => !d)}
-              className="rounded-full p-2 bg-white dark:bg-gray-800 shadow border border-gray-200 dark:border-gray-700 hover:scale-110 transition-all"
+              className="glacier-card p-4 hover:scale-110 active:scale-95 transition-all shadow-2xl border-cyan-400/30"
               title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
             >
               {darkMode ? (
-                <span role="img" aria-label="Light">🌞</span>
+                <span className="text-2xl">🌞</span>
               ) : (
-                <span role="img" aria-label="Dark">🌙</span>
+                <span className="text-2xl">🌙</span>
               )}
             </button>
           </div>
-          {renderPage()}
+          <div className="relative z-10">
+            {renderPage()}
+          </div>
         </div>
       </Web3Provider>
     </DarkModeContext.Provider>

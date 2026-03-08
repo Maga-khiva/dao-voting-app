@@ -3,6 +3,7 @@ import { ProposalList } from "../components/ProposalList";
 import { ProposalFilter } from "../components/ProposalFilter";
 import { DisconnectModal } from "../components/DisconnectModal";
 import { useWeb3 } from "../hooks/useWeb3";
+import { Logo } from "../components/Logo";
 import contractConfig from "../config/contract.json";
 
 export const Home = ({ onNavigate }) => {
@@ -32,7 +33,6 @@ export const Home = ({ onNavigate }) => {
     connectWallet();
   };
 
-  // Determine network name
   const getNetworkName = () => {
     if (!chainId) return contractConfig.network || "Unknown";
     if (chainId === 11155111) return "Sepolia";
@@ -41,149 +41,157 @@ export const Home = ({ onNavigate }) => {
   };
 
   return (
-    <div className="min-h-screen py-6 px-2 sm:py-10 sm:px-4 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8 fade-in border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm px-4 py-3 sm:px-8 sm:py-4 bg-white dark:bg-gray-800">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="text-lg sm:text-2xl">🗳️</span>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap dark:text-white">MAGA DAO</h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Glacier Header */}
+      <header className="glacier-card mb-10 p-6 sm:p-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <Logo className="w-12 h-12 drop-shadow-lg" />
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-extrabold glacier-gradient-text tracking-tight">
+                GLACIER DAO
+              </h1>
+              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
+                Decentralized Governance Protocol
+              </p>
             </div>
-            <div className="flex flex-col items-end sm:items-center gap-1 min-w-0">
-              {isInitializing ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse"></div>
-                  <span className="text-xs text-gray-600 dark:text-gray-300">Initializing...</span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4">
+            {isInitializing ? (
+              <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl">
+                <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></div>
+                <span className="text-xs font-bold text-slate-500">INITIALIZING</span>
+              </div>
+            ) : !account ? (
+              <button
+                onClick={connectWallet}
+                disabled={isConnecting}
+                className="glacier-btn-primary px-8"
+              >
+                {isConnecting ? "CONNECTING..." : "CONNECT WALLET"}
+              </button>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="hidden sm:flex flex-col items-end">
+                  <span className="text-[10px] font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-widest">Connected Network</span>
+                  <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{getNetworkName()}</span>
                 </div>
-              ) : !account ? (
-                <button
-                  onClick={connectWallet}
-                  disabled={isConnecting}
-                  className="btn-success disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 transition-all px-4 py-2 text-sm"
-                >
-                  {isConnecting ? "⏳ Connecting..." : "🔗 Connect Wallet"}
-                </button>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <span className="relative flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
-                  </span>
-                  <span className="text-xs font-semibold text-green-700 dark:text-green-400 mr-2">Connected</span>
-                  <span className="font-mono text-xs font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-gray-700 px-2 py-0.5 rounded-lg truncate max-w-[110px] sm:max-w-[160px]" title={account}>
+                <div className="h-10 w-[1px] bg-slate-200 dark:bg-slate-700 hidden sm:block mx-2"></div>
+                <div className="flex items-center gap-3 bg-slate-100/50 dark:bg-slate-800/50 p-2 pr-4 rounded-2xl border border-white/20">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white font-bold text-xs">
+                    {account.slice(2, 4).toUpperCase()}
+                  </div>
+                  <span className="font-mono text-sm font-bold text-slate-700 dark:text-slate-200">
                     {account.slice(0, 6)}...{account.slice(-4)}
                   </span>
                   <button
                     onClick={handleDisconnectClick}
-                    className="text-xs font-semibold text-red-600 hover:text-red-700 hover:underline transition-all ml-2"
+                    className="text-slate-400 hover:text-red-500 transition-colors"
+                    title="Disconnect"
                   >
-                    🔌 Disconnect
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
                   </button>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
-          <p className="text-gray-500 dark:text-gray-300 text-sm mt-2 ml-1 hidden sm:block">Decentralized governance for the community</p>
+        </div>
+      </header>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Main Content */}
+        <div className="lg:col-span-8 space-y-6">
+          <div className="flex items-center justify-between px-2">
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <span className="text-cyan-500">❄️</span> Active Proposals
+            </h2>
+            <button 
+              onClick={handleRefresh}
+              className="text-sm font-bold text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+              REFRESH
+            </button>
+          </div>
+          
+          <ProposalFilter onFilterChange={setFilters} />
+          
+          <ProposalList
+            onSelectProposal={handleSelectProposal}
+            refreshTrigger={refreshTrigger}
+            onCreateClick={() => onNavigate("create")}
+            filters={filters}
+          />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-800 dark:text-white">Proposals</h2>
-              <button 
-                onClick={handleRefresh}
-                className="text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
-              >
-                🔄 Refresh List
-              </button>
-            </div>
-            <ProposalFilter onFilterChange={setFilters} />
-            <ProposalList
-              onSelectProposal={handleSelectProposal}
-              refreshTrigger={refreshTrigger}
-              onCreateClick={() => onNavigate("create")}
-              filters={filters}
-            />
-          </div>
+        {/* Sidebar */}
+        <aside className="lg:col-span-4 space-y-6">
+          <button
+            onClick={() => onNavigate("create")}
+            className="glacier-btn-primary w-full py-5 text-lg shadow-cyan-500/20"
+          >
+            + CREATE PROPOSAL
+          </button>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Create Proposal Button */}
-            <button
-              onClick={() => onNavigate("create")}
-              className="w-full btn-success text-lg py-4 fade-in hover:scale-105 transition-all"
-            >
-              ➕ Create Proposal
-            </button>
-
-            {/* Analytics Link */}
+          <div className="grid grid-cols-2 gap-4">
             <button
               onClick={() => onNavigate("analytics")}
-              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-3 px-4 rounded-2xl transition-all fade-in hover:scale-105"
+              className="glacier-btn-secondary flex flex-col items-center gap-2 py-6"
             >
-              📊 View Analytics
+              <span className="text-2xl">📊</span>
+              <span className="text-xs font-bold tracking-widest">ANALYTICS</span>
             </button>
-
-            {/* Tier 2 Features Link */}
             <button
               onClick={() => onNavigate("tier2")}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold py-3 px-4 rounded-2xl transition-all fade-in border border-blue-200 hover:scale-105"
+              className="glacier-btn-secondary flex flex-col items-center gap-2 py-6 border-cyan-400/20"
             >
-              ⭐ Advanced Features (Tier 2)
+              <span className="text-2xl">⚡</span>
+              <span className="text-xs font-bold tracking-widest">ADVANCED</span>
             </button>
+          </div>
 
-            {/* Quick Stats Card */}
-            <div className="rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800 p-6 fade-in">
-              <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white mb-6">
-                📊 Quick Stats
-              </h3>
-              <div className="space-y-4">
-                <div className="border-b dark:border-gray-700 pb-4">
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Wallet Status</p>
-                  <p className="font-semibold text-lg dark:text-white">
-                    {account ? (
-                      <span className="text-green-600">✓ Connected</span>
-                    ) : (
-                      <span className="text-gray-600">Not Connected</span>
-                    )}
-                  </p>
-                </div>
-                <div className="border-b dark:border-gray-700 pb-4">
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Voting Rights</p>
-                  <p className="font-semibold text-lg dark:text-white">
-                    {account ? (
-                      <span className="text-green-600">✓ Enabled</span>
-                    ) : (
-                      <span className="text-orange-600">Connect Wallet</span>
-                    )}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Network</p>
-                  <p className="font-semibold text-lg text-blue-600">
-                    🔗 {getNetworkName()}
-                  </p>
-                </div>
+          <div className="glacier-card p-6">
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
+              <span className="text-cyan-500">💎</span> DAO Insights
+            </h3>
+            <div className="space-y-5">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">Wallet Status</span>
+                <span className={`text-xs font-bold px-3 py-1 rounded-full ${account ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}>
+                  {account ? "CONNECTED" : "DISCONNECTED"}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">Voting Power</span>
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                  {account ? "ENABLED" : "CONNECT WALLET"}
+                </span>
+              </div>
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Governance Rules</p>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+                    <div className="w-1 h-1 bg-cyan-500 rounded-full"></div>
+                    7-day voting duration
+                  </li>
+                  <li className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+                    <div className="w-1 h-1 bg-cyan-500 rounded-full"></div>
+                    Token-weighted consensus
+                  </li>
+                  <li className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+                    <div className="w-1 h-1 bg-cyan-500 rounded-full"></div>
+                    Multi-sig execution safety
+                  </li>
+                </ul>
               </div>
             </div>
-
-            {/* Info Card */}
-            <div className="rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm bg-blue-50 dark:bg-blue-900/20 p-6 fade-in">
-              <h4 className="font-bold text-blue-900 dark:text-blue-300 mb-3">ℹ️ How It Works</h4>
-              <ul className="text-sm text-blue-800 dark:text-blue-400 space-y-2">
-                <li>✓ Create proposals (owner)</li>
-                <li>✓ Vote yes or no</li>
-                <li>✓ 7-day voting period</li>
-                <li>✓ Execute if yes votes exceed no votes</li>
-              </ul>
-            </div>
           </div>
-        </div>
+        </aside>
       </div>
 
-      {/* Disconnect Modal */}
       <DisconnectModal
         isOpen={showDisconnectModal}
         onClose={() => setShowDisconnectModal(false)}
