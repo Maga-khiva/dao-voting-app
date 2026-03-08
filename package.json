@@ -29,6 +29,7 @@
     "@openzeppelin/contracts": "^5.4.0",
     "dotenv": "^16.6.1",
     "ethers": "^6.0.0",
+    "framer-motion": "^12.35.1",
     "lucide-react": "^0.577.0",
     "react-hot-toast": "^2.6.0"
   }

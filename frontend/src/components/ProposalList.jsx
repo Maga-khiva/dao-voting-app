@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { motion } from "framer-motion";
 import { useWeb3 } from "../hooks/useWeb3";
 import { parseErrorMessage } from "../utils/helpers";
 import { ethers } from "ethers";
@@ -56,16 +57,38 @@ export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, 
 
   if (isLoading && proposals.length === 0) return <div className="text-center py-20 animate-pulse">SYNCING BLOCKCHAIN...</div>;
 
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div className="space-y-6">
+    <motion.div 
+      variants={container}
+      initial="hidden"
+      animate="show"
+      className="space-y-6"
+    >
       {filteredProposals.length === 0 ? (
-        <div className="glacier-card p-20 text-center">
+        <motion.div variants={item} className="glacier-card p-20 text-center">
           <p className="text-slate-400 font-bold uppercase tracking-widest">No proposals found matching your criteria</p>
-        </div>
+        </motion.div>
       ) : (
         filteredProposals.map((proposal) => (
-          <div
+          <motion.div
             key={proposal.id}
+            variants={item}
+            whileHover={{ y: -4, transition: { duration: 0.2 } }}
             className="glacier-card p-6 sm:p-8 hover:border-cyan-400/50 group cursor-pointer transition-all"
             onClick={() => onSelectProposal(proposal.id)}
           >
@@ -87,14 +110,16 @@ export const ProposalList = ({ onSelectProposal, refreshTrigger, onCreateClick, 
             </div>
             <p className="text-slate-500 dark:text-slate-400 text-sm line-clamp-2 mb-6">{proposal.description}</p>
             <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-1000"
-                style={{ width: `${proposal.yesVotes + proposal.noVotes > 0 ? (proposal.yesVotes / (proposal.yesVotes + proposal.noVotes)) * 100 : 0}%` }}
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${proposal.yesVotes + proposal.noVotes > 0 ? (proposal.yesVotes / (proposal.yesVotes + proposal.noVotes)) * 100 : 0}%` }}
+                transition={{ duration: 1, ease: "easeOut" }}
+                className="h-full bg-gradient-to-r from-cyan-400 to-blue-500"
               />
             </div>
-          </div>
+          </motion.div>
         ))
       )}
-    </div>
+    </motion.div>
   );
 };

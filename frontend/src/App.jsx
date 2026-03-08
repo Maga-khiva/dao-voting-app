@@ -1,5 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from "react";
 import { Toaster } from "react-hot-toast";
+import { AnimatePresence, motion } from "framer-motion";
 import { Web3Provider } from "./context/Web3Provider";
 import { Home } from "./pages/Home";
 import { CreateProposalPage } from "./pages/CreateProposalPage";
@@ -33,15 +34,34 @@ function App() {
     window.scrollTo(0, 0);
   };
 
+  const pageVariants = {
+    initial: { opacity: 0, y: 10 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -10 }
+  };
+
   const renderPage = () => {
-    switch (currentPage) {
-      case "home": return <Home onNavigate={handleNavigate} />;
-      case "create": return <CreateProposalPage onNavigate={handleNavigate} onProposalCreated={() => handleNavigate("home")} />;
-      case "vote": return <VotePage onNavigate={handleNavigate} proposalId={pageParams.proposalId} />;
-      case "analytics": return <Analytics onNavigate={handleNavigate} />;
-      case "tier2": return <Tier2Features onNavigate={handleNavigate} />;
-      default: return <Home onNavigate={handleNavigate} />;
-    }
+    return (
+      <motion.div
+        key={currentPage}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        variants={pageVariants}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+      >
+        {(() => {
+          switch (currentPage) {
+            case "home": return <Home onNavigate={handleNavigate} />;
+            case "create": return <CreateProposalPage onNavigate={handleNavigate} onProposalCreated={() => handleNavigate("home")} />;
+            case "vote": return <VotePage onNavigate={handleNavigate} proposalId={pageParams.proposalId} />;
+            case "analytics": return <Analytics onNavigate={handleNavigate} />;
+            case "tier2": return <Tier2Features onNavigate={handleNavigate} />;
+            default: return <Home onNavigate={handleNavigate} />;
+          }
+        })()}
+      </motion.div>
+    );
   };
 
   return (
@@ -56,14 +76,20 @@ function App() {
         />
         <div className={`min-h-screen transition-colors duration-500 ${darkMode ? "glacier-bg-dark" : "glacier-bg-light"}`}>
           <div className="fixed bottom-6 right-6 z-50">
-            <button
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               onClick={() => setDarkMode((d) => !d)}
-              className="glacier-card p-4 hover:scale-110 active:scale-95 transition-all shadow-2xl border-cyan-400/30"
+              className="glacier-card p-4 shadow-2xl border-cyan-400/30"
             >
               {darkMode ? "🌞" : "🌙"}
-            </button>
+            </motion.button>
           </div>
-          <div className="relative z-10">{renderPage()}</div>
+          <div className="relative z-10">
+            <AnimatePresence mode="wait">
+              {renderPage()}
+            </AnimatePresence>
+          </div>
         </div>
       </Web3Provider>
     </DarkModeContext.Provider>
