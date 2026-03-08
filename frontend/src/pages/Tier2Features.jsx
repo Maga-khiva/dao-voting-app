@@ -2,172 +2,90 @@ import React from "react";
 import { VoteDelegation } from "../components/VoteDelegation";
 import { RoleManagement } from "../components/RoleManagement";
 import { TokenTransfer } from "../components/TokenTransfer";
+import { Logo } from "../components/Logo";
 
 export const Tier2Features = ({ onNavigate }) => {
   const [activeTab, setActiveTab] = React.useState("delegation");
 
+  const tabs = [
+    { id: "delegation", label: "DELEGATION", icon: "🤝" },
+    { id: "roles", label: "ROLES", icon: "🛡️" },
+    { id: "transfer", label: "TRANSFER", icon: "📤" },
+    { id: "info", label: "PROTOCOL", icon: "💎" },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <button
-            onClick={() => onNavigate("home")}
-            className="text-blue-600 hover:text-blue-800 mb-4"
-          >
-            ← Back to Home
-          </button>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-700 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Advanced Features</h1>
-          <p className="text-gray-600 mt-2">Manage your voting power and governance permissions</p>
+    <div className="max-w-5xl mx-auto px-4 py-12">
+      <div className="flex items-center justify-between mb-10">
+        <div className="flex items-center gap-4">
+          <Logo className="w-10 h-10" />
+          <h1 className="text-2xl sm:text-3xl font-extrabold glacier-gradient-text tracking-tight uppercase">
+            Advanced Protocol
+          </h1>
         </div>
+        <button
+          onClick={() => onNavigate("home")}
+          className="glacier-btn-secondary py-2 px-4 text-sm"
+        >
+          ← BACK HOME
+        </button>
+      </div>
 
-        {/* Tab Navigation */}
-        <div className="flex gap-2 mb-6 flex-wrap">
+      <div className="flex flex-wrap gap-3 mb-8">
+        {tabs.map((tab) => (
           <button
-            onClick={() => setActiveTab("delegation")}
-            className={`px-6 py-2 rounded-lg font-semibold transition ${
-              activeTab === "delegation"
-                ? "bg-blue-600 text-white"
-                : "bg-white text-gray-800 hover:bg-gray-100 border border-gray-300"
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-xs tracking-widest transition-all ${
+              activeTab === tab.id
+                ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20"
+                : "bg-white/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 border border-white/20"
             }`}
           >
-            Vote Delegation
+            <span>{tab.icon}</span>
+            {tab.label}
           </button>
-          <button
-            onClick={() => setActiveTab("roles")}
-            className={`px-6 py-2 rounded-lg font-semibold transition ${
-              activeTab === "roles"
-                ? "bg-purple-600 text-white"
-                : "bg-white text-gray-800 hover:bg-gray-100 border border-gray-300"
-            }`}
-          >
-            Role Management
-          </button>
-          <button
-            onClick={() => setActiveTab("transfer")}
-            className={`px-6 py-2 rounded-lg font-semibold transition ${
-              activeTab === "transfer"
-                ? "bg-purple-600 text-white"
-                : "bg-white text-gray-800 hover:bg-gray-100 border border-gray-300"
-            }`}
-          >
-            Transfer Tokens
-          </button>
-          <button
-            onClick={() => setActiveTab("info")}
-            className={`px-6 py-2 rounded-lg font-semibold transition ${
-              activeTab === "info"
-                ? "bg-green-600 text-white"
-                : "bg-white text-gray-800 hover:bg-gray-100 border border-gray-300"
-            }`}
-          >
-            Information
-          </button>
-        </div>
+        ))}
+      </div>
 
-        {/* Content */}
-        <div>
-          {activeTab === "delegation" && (
-            <div>
-              <VoteDelegation proposalId={null} />
-            </div>
-          )}
-
-          {activeTab === "roles" && (
-            <div>
-              <RoleManagement />
-            </div>
-          )}
-
-          {activeTab === "transfer" && (
-            <div className="flex justify-center">
-              <TokenTransfer />
-            </div>
-          )}
-
-          {activeTab === "info" && (
-            <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
-              <section>
-                <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-3">Snapshot-Based Voting</h3>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-gray-700 mb-2">
-                    Your voting power is locked when a proposal is created. This prevents manipulation
-                    through token transfers after a proposal opens.
-                  </p>
-                  <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                    <li>Voting weight determined at proposal creation block</li>
-                    <li>Token transfers don't affect your voting power</li>
-                    <li>Fair and transparent voting mechanism</li>
-                  </ul>
-                </div>
-              </section>
-
-              <section>
-                <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-3">Vote Delegation</h3>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-gray-700 mb-2">
-                    Delegate your voting power to someone you trust. They'll receive your voting weight.
-                  </p>
-                  <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                    <li>Delegate to any Ethereum address</li>
-                    <li>Voting power = your tokens + delegated tokens</li>
-                    <li>Revoke delegation anytime to regain control</li>
-                    <li>Cannot vote while delegation is active</li>
-                  </ul>
-                </div>
-              </section>
-
-              <section>
-                <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-3">Role-Based Access Control</h3>
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                  <p className="text-gray-700 mb-3">Three roles control governance permissions:</p>
-                  <div className="space-y-3">
-                    <div className="bg-white p-3 rounded border border-purple-100">
-                      <p className="font-semibold text-gray-800">👤 Member</p>
-                      <p className="text-sm text-gray-600">Vote on proposals & propose amendments</p>
-                    </div>
-                    <div className="bg-white p-3 rounded border border-purple-100">
-                      <p className="font-semibold text-gray-800">🛡️ Moderator</p>
-                      <p className="text-sm text-gray-600">All Member permissions + approve/reject amendments</p>
-                    </div>
-                    <div className="bg-white p-3 rounded border border-purple-100">
-                      <p className="font-semibold text-gray-800">⚡ Admin</p>
-                      <p className="text-sm text-gray-600">All permissions + assign/revoke roles</p>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              <section>
-                <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-3">Proposal Amendments</h3>
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <p className="text-gray-700 mb-2">
-                    Members can propose changes to active proposals. Moderators review and approve/reject.
-                  </p>
-                  <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                    <li>Members can amend title and description</li>
-                    <li>Amendments must be within 5 minutes of proposal close</li>
-                    <li>Moderators approve/reject amendments</li>
-                    <li>Approved amendments instantly update the proposal</li>
-                  </ul>
-                </div>
-              </section>
-
-              <section className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-800 mb-2">🔐 Security & Fairness</h4>
-                <p className="text-sm text-gray-700">
-                  These Tier 2 features enhance security and fairness in governance:
+      <div className="glacier-card p-8 sm:p-12">
+        {activeTab === "delegation" && <VoteDelegation />}
+        {activeTab === "roles" && <RoleManagement />}
+        {activeTab === "transfer" && (
+          <div className="flex justify-center">
+            <TokenTransfer />
+          </div>
+        )}
+        {activeTab === "info" && (
+          <div className="space-y-10">
+            <section>
+              <h3 className="text-xl font-black text-slate-800 dark:text-white mb-4 uppercase tracking-widest">Snapshot Mechanism</h3>
+              <div className="p-6 bg-cyan-500/5 dark:bg-cyan-500/10 rounded-2xl border border-cyan-500/20">
+                <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                  Voting power is locked at the exact block of proposal creation. This prevents "flash-loan" style attacks where tokens are moved just to influence a specific vote.
                 </p>
-                <ul className="list-disc list-inside text-sm text-gray-600 space-y-1 mt-2">
-                  <li>Snapshot voting prevents last-minute manipulation</li>
-                  <li>Delegation enables participation proxies</li>
-                  <li>RBAC ensures proper permission management</li>
-                  <li>Amendments allow proposal refinement</li>
-                </ul>
-              </section>
-            </div>
-          )}
-        </div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="text-xl font-black text-slate-800 dark:text-white mb-4 uppercase tracking-widest">Role-Based Access</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-white/20">
+                  <p className="font-black text-cyan-600 dark:text-cyan-400 text-[10px] mb-1 uppercase">Member</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Vote & Propose</p>
+                </div>
+                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-white/20">
+                  <p className="font-black text-blue-600 dark:text-blue-400 text-[10px] mb-1 uppercase">Moderator</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Manage Amendments</p>
+                </div>
+                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-white/20">
+                  <p className="font-black text-purple-600 dark:text-purple-400 text-[10px] mb-1 uppercase">Admin</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Full Permissions</p>
+                </div>
+              </div>
+            </section>
+          </div>
+        )}
       </div>
     </div>
   );
