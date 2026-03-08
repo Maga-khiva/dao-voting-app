@@ -3,20 +3,19 @@ import { useWeb3 } from "../hooks/useWeb3";
 import { useTokenBalance } from "../hooks/useTokenBalance";
 import { parseErrorMessage, formatAddress } from "../utils/helpers";
 import { ethers } from "ethers";
+import toast from "react-hot-toast";
 import ProposalVotingABI from "../abi/ProposalVoting.json";
 import contractConfig from "../config/contract.json";
 import { CountdownTimer } from "./CountdownTimer";
 import { ApprovalBox } from "./ApprovalBox";
+import { CopyButton } from "./CopyButton";
 
 export const VoteBox = ({ proposalId, onVoteSuccess }) => {
-  const { contract, account, provider } = useWeb3();
-  const { balance } = useTokenBalance();
+  const { contract, account, provider, signer } = useWeb3();
   const [proposal, setProposal] = useState(null);
   const [hasVoted, setHasVoted] = useState(false);
   const [userVote, setUserVote] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
   const [userTokenWeight, setUserTokenWeight] = useState("0");
   const [effectiveVotingPower, setEffectiveVotingPower] = useState("0");
   const [recentVotes, setRecentVotes] = useState([]);
@@ -53,179 +52,122 @@ export const VoteBox = ({ proposalId, onVoteSuccess }) => {
         setEffectiveVotingPower(ethers.formatEther(power));
       }
 
-      // Load recent votes from events
       const filter = readContract.filters.VoteCasted(proposalId);
-      const events = await readContract.queryFilter(filter, -1000); // Last 1000 blocks
-      const formattedVotes = events.map(e => ({
+      const events = await readContract.queryFilter(filter, -1000);
+      setRecentVotes(events.map(e => ({
         voter: e.args[1],
         support: e.args[2],
         weight: ethers.formatEther(e.args[3]),
-        txHash: e.transactionHash
-      })).reverse().slice(0, 5);
-      setRecentVotes(formattedVotes);
+      })).reverse().slice(0, 5));
 
     } catch (err) { console.error(err); }
   }, [proposalId, provider, account]);
 
-  useEffect(() => {
-    loadProposal();
-  }, [loadProposal]);
+  useEffect(() => { loadProposal(); }, [loadProposal]);
 
   const handleVote = async (support) => {
-    if (!contract || !account) return;
-    setIsLoading(true); setError(null);
+    if (!contract || !signer) return;
+    const tid = toast.loading("Crystallizing your vote...");
+    setIsLoading(true);
     try {
-      const tx = await contract.vote(proposalId, support);
+      const tx = await contract.connect(signer).vote(proposalId, support);
       await tx.wait();
-      setSuccess(true);
-      setTimeout(() => {
-        setSuccess(false);
-        loadProposal();
-        if (onVoteSuccess) onVoteSuccess();
-      }, 2000);
-    } catch (err) { setError(parseErrorMessage(err)); }
-    finally { setIsLoading(false); }
+      toast.success("Vote recorded on-chain!", { id: tid });
+      loadProposal();
+      if (onVoteSuccess) onVoteSuccess();
+    } catch (err) {
+      toast.error(parseErrorMessage(err), { id: tid });
+    } finally { setIsLoading(false); }
   };
 
-  if (!proposal) return (
-    <div className="glacier-card p-20 text-center">
-      <div className="w-12 h-12 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4"></div>
-      <p className="text-slate-500 font-bold text-xs tracking-widest">CRYSTALLIZING DATA</p>
-    </div>
-  );
+  const handleExecute = async () => {
+    if (!contract || !signer) return;
+    const tid = toast.loading("Executing proposal...");
+    try {
+      const tx = await contract.connect(signer).executeProposal(proposalId);
+      await tx.wait();
+      toast.success("Proposal executed successfully!", { id: tid });
+      loadProposal();
+    } catch (err) {
+      toast.error(parseErrorMessage(err), { id: tid });
+    }
+  };
+
+  if (!proposal) return <div className="glacier-card p-20 text-center animate-pulse">SYNCING...</div>;
 
   const totalVotes = proposal.yesVotes + proposal.noVotes;
   const yesPercentage = totalVotes > 0 ? (proposal.yesVotes / totalVotes) * 100 : 0;
-  const noPercentage = totalVotes > 0 ? (proposal.noVotes / totalVotes) * 100 : 0;
+  const canExecute = proposal.status === "Closed" && Number(proposal.approvalsGiven) >= contractConfig.requiredApprovals;
 
   return (
     <div className="space-y-8">
       <div className="glacier-card p-8 sm:p-12">
         <div className="flex flex-col sm:flex-row justify-between items-start gap-6 mb-10">
           <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <span className="px-4 py-1 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-xs font-black uppercase tracking-widest rounded-xl border border-cyan-500/20">
-                {proposal.category}
-              </span>
-              <span className="text-slate-400 font-mono text-sm">PROPOSAL #{proposal.id}</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-800 dark:text-white leading-tight">
-              {proposal.title}
-            </h2>
-            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm font-medium">
-              <span>Proposed by</span>
-              <span className="font-mono text-cyan-600 dark:text-cyan-400">{formatAddress(proposal.creator)}</span>
+            <span className="px-4 py-1 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-xs font-black uppercase tracking-widest rounded-xl border border-cyan-500/20">
+              {proposal.category}
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-800 dark:text-white leading-tight">{proposal.title}</h2>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400">Proposed by</span>
+              <CopyButton text={proposal.creator} label="Creator" />
             </div>
           </div>
           <div className="flex flex-col items-end gap-3">
             <CountdownTimer deadline={proposal.deadline} />
-            <div className="px-4 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-black text-slate-500 tracking-widest">
-              {proposal.status.toUpperCase()}
+            <div className="px-4 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-black text-slate-500 tracking-widest uppercase">
+              {proposal.status}
             </div>
           </div>
         </div>
 
-        <div className="prose dark:prose-invert max-w-none mb-12">
-          <p className="text-slate-600 dark:text-slate-300 text-lg leading-relaxed whitespace-pre-wrap">
-            {proposal.description}
-          </p>
-        </div>
+        <p className="text-slate-600 dark:text-slate-300 text-lg leading-relaxed mb-12 whitespace-pre-wrap">{proposal.description}</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          <div className="glacier-card bg-green-500/5 dark:bg-green-500/10 p-6 border-green-500/20">
+          <div className="glacier-card bg-green-500/5 p-6 border-green-500/20">
             <div className="flex justify-between items-end mb-4">
-              <span className="text-xs font-black text-green-600 dark:text-green-400 tracking-widest">YES VOTES</span>
-              <span className="text-2xl font-black text-green-600 dark:text-green-400">{proposal.yesVotes}</span>
+              <span className="text-xs font-black text-green-600 tracking-widest uppercase">Yes Votes</span>
+              <span className="text-2xl font-black text-green-600">{proposal.yesVotes}</span>
             </div>
             <div className="w-full h-3 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
               <div className="h-full bg-green-500 transition-all duration-1000" style={{ width: `${yesPercentage}%` }} />
             </div>
-            <p className="text-right text-[10px] font-bold text-slate-400 mt-2">{yesPercentage.toFixed(1)}% CONSENSUS</p>
           </div>
-
-          <div className="glacier-card bg-red-500/5 dark:bg-red-500/10 p-6 border-red-500/20">
+          <div className="glacier-card bg-red-500/5 p-6 border-red-500/20">
             <div className="flex justify-between items-end mb-4">
-              <span className="text-xs font-black text-red-600 dark:text-red-400 tracking-widest">NO VOTES</span>
-              <span className="text-2xl font-black text-red-600 dark:text-red-400">{proposal.noVotes}</span>
+              <span className="text-xs font-black text-red-600 tracking-widest uppercase">No Votes</span>
+              <span className="text-2xl font-black text-red-600">{proposal.noVotes}</span>
             </div>
             <div className="w-full h-3 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-              <div className="h-full bg-red-500 transition-all duration-1000" style={{ width: `${noPercentage}%` }} />
+              <div className="h-full bg-red-500 transition-all duration-1000" style={{ width: `${100 - yesPercentage}%` }} />
             </div>
-            <p className="text-right text-[10px] font-bold text-slate-400 mt-2">{noPercentage.toFixed(1)}% DISSENT</p>
           </div>
         </div>
 
-        {account && (
-          <div className="glacier-card bg-cyan-500/5 dark:bg-cyan-500/10 p-6 border-cyan-500/20 mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-cyan-500 flex items-center justify-center text-white text-xl shadow-lg shadow-cyan-500/20">⚡</div>
-              <div>
-                <p className="text-[10px] font-black text-cyan-600 dark:text-cyan-400 tracking-widest uppercase">Your Voting Power</p>
-                <p className="text-xl font-black text-slate-800 dark:text-white">{parseFloat(effectiveVotingPower).toFixed(2)} GOV</p>
-              </div>
-            </div>
-            {hasVoted && (
-              <div className="px-6 py-2 bg-white/50 dark:bg-slate-800/50 rounded-2xl border border-white/20 text-sm font-bold text-slate-700 dark:text-slate-200">
-                You voted <span className={userVote ? "text-green-500" : "text-red-500"}>{userVote ? "YES" : "NO"}</span> with {parseFloat(userTokenWeight).toFixed(2)} power
-              </div>
-            )}
-          </div>
-        )}
-
-        {error && <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl font-bold text-sm">⚠️ {error}</div>}
-        {success && <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 text-green-500 rounded-2xl font-bold text-sm">✅ VOTE CRYSTALLIZED ON-CHAIN</div>}
-
-        {!proposal.isVotingOpen ? (
-          <div className="glacier-card p-8 text-center bg-slate-100 dark:bg-slate-800/50 border-dashed">
-            <p className="text-slate-500 dark:text-slate-400 font-black tracking-widest">VOTING PERIOD HAS CONCLUDED</p>
-          </div>
-        ) : !account ? (
-          <button onClick={() => connectWallet()} className="glacier-btn-primary w-full py-5">CONNECT WALLET TO VOTE</button>
-        ) : (
+        {proposal.isVotingOpen ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <button 
-              onClick={() => handleVote(true)} 
-              disabled={isLoading || hasVoted} 
-              className="glacier-btn-primary bg-gradient-to-br from-green-400 to-green-600 shadow-green-500/20 disabled:opacity-50"
-            >
-              {isLoading ? "PROCESSING..." : "VOTE YES"}
-            </button>
-            <button 
-              onClick={() => handleVote(false)} 
-              disabled={isLoading || hasVoted} 
-              className="glacier-btn-primary bg-gradient-to-br from-slate-400 to-slate-600 shadow-slate-500/20 disabled:opacity-50"
-            >
-              {isLoading ? "PROCESSING..." : "VOTE NO"}
-            </button>
+            <button onClick={() => handleVote(true)} disabled={isLoading || hasVoted} className="glacier-btn-primary bg-gradient-to-br from-green-500 to-emerald-600">VOTE YES</button>
+            <button onClick={() => handleVote(false)} disabled={isLoading || hasVoted} className="glacier-btn-primary bg-gradient-to-br from-slate-500 to-slate-700">VOTE NO</button>
           </div>
-        )}
+        ) : canExecute && proposal.status !== "Executed" ? (
+          <button onClick={handleExecute} className="glacier-btn-primary w-full py-5 bg-gradient-to-br from-purple-500 to-indigo-600">FINAL EXECUTION</button>
+        ) : null}
 
-        {/* Recent Activity Section */}
         <div className="mt-12 pt-12 border-t border-slate-100 dark:border-slate-800">
-          <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-6">Recent Activity</h3>
+          <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">Recent Activity</h3>
           <div className="space-y-3">
-            {recentVotes.length === 0 ? (
-              <p className="text-xs font-bold text-slate-400 italic">No votes recorded yet...</p>
-            ) : (
-              recentVotes.map((v, i) => (
-                <div key={i} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-white/10">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full ${v.support ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                    <span className="text-xs font-mono font-bold text-slate-600 dark:text-slate-300">{formatAddress(v.voter)}</span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-[10px] font-black text-slate-400 uppercase">{parseFloat(v.weight).toFixed(2)} GOV</span>
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded ${v.support ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
-                      {v.support ? 'YES' : 'NO'}
-                    </span>
-                  </div>
-                </div>
-              ))
-            )}
+            {recentVotes.map((v, i) => (
+              <div key={i} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-white/10">
+                <CopyButton text={v.voter} label="Voter" />
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded ${v.support ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+                  {v.support ? 'YES' : 'NO'} ({parseFloat(v.weight).toFixed(2)} GOV)
+                </span>
+              </div>
+            ))}
           </div>
         </div>
 
-        {proposal && !proposal.executed && !proposal.isVotingOpen && (
+        {proposal.status === "Closed" && (
           <div className="mt-10 pt-10 border-t border-slate-100 dark:border-slate-800">
             <ApprovalBox proposalId={proposalId} proposal={proposal} status={proposal.status} />
           </div>
